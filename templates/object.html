@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<title>Window62</title>
+{% endblock %}
+
+{% block body %}
+<div class="content">
+    <h1 style="text-align: center">Objects</h1>
+    {% if objects|length < 1 %}
+    <h4 style="text-align: center">There are no tasks. Create one below! </h4>
+    {% else %}
+    <table>
+        <tr>
+            <th>Id</th>
+            <th>Name</th>
+            <th>Status</th>
+        </tr>
+        {% for object in objects%}
+            
+            <tr>
+                
+                <td><a href="/object/{{object.obj_id}}">{{ object.obj_id }}</a></td>
+                <td><a href="/object/{{object.obj_id}}">{{ object.obj_name }}</a></td>
+                <td><a href="/object/{{object.obj_id}}">{{ object.obj_status}}</a><br><button name="statusBtn">Change status</button></td>
+                <!-- <button>Change status</button> -->
+            </tr>
+            
+        {% endfor %}
+        </table>
+        {% endif %}
+    <!-- <form action="/" method="POST" style="text-align: center">
+        <input type="text" name="content" id="content">
+        <input type="submit" value="Add Task">
+    </form> -->
+    
+</div>
+{% endblock %}
+

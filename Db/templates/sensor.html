@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<title>Window62</title>
+{% endblock %}
+
+{% block body %}
+<div class="content">
+    <h1 style="text-align: center">Sensors</h1>
+    {% if sensors|length < 1 %}
+    <h4 style="text-align: center">There is no sensor in this object. </h4>
+    {% else %}
+    <table>
+        <tr>
+            <th>Id</th>
+            <th>Name</th>
+            <th>Data</th>
+        </tr>
+        {% for sensor in sensors%}
+            <tr>
+                <td>{{ sensor.sensor_id }}</td>
+                <td>{{ sensor.sensor_name }}</td>
+                <td>{{ testData }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+    {% endif %}
+    <!-- <form action="/" method="POST" style="text-align: center">
+        <input type="text" name="content" id="content">
+        <input type="submit" value="Add Task">
+    </form> -->
+    
+</div>
+{% endblock %}
+
