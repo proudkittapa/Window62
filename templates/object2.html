@@ -12,29 +12,21 @@
     <div class="row">
         {% for object in objects%}
       <div class="col-md-6">
-        <div class="card card-height">
+        <div class="card card-height" >
 
-          <div class="card-body center"><br>
-              <h5 class="card-title  " >{{ object.obj_name }}</h5>
-              <div class="row ">
-                <div class="col center">
-                    <h5 class="card-text"> {{ object.obj_status }} </h5>
-                  <div class="btn-group" role="group" aria-label="Basic mixed styles example">
-                      <button type="button" class="btn btn-danger">Open</button>
-                      <button type="button" class="btn btn-success">Close</button>
-                  </div>
-                </div>
-              </div>
+          <div class="card-object center"><br>
+              <h4 class="card-title" >{{ object.obj_name }}</h4>
+              <h5 class="card-text" > {{ object.obj_status }} </h5>
           </div>
-          
-          <div class="card-body center">
-            <h5>{{ object.obj_name }}'s Sensor</h5>
+          <br>
+          <div class="card-object center">
+            <h5 >{{ object.obj_name }}'s Sensor</h5>
               <div class="row">
                 {% for s in sensors %}
                     {% for sensor in s %}
                         {% if sensor.obj_id == object.obj_id %}
-                        <div class="col-md-5">
-                            <div class="card-body">
+                        <!-- <div class="col-md-5"> -->
+                            <div class="card-body" >
                                 <h5 class="card-title">{{ sensor.sensor_name}}</h5>
                                 {% if sensor.sensor_name == "LDR" %}
                                     <h6>{{ lightData }}</h6>
@@ -46,22 +38,27 @@
                                     <h6>{{ dustData }}</h6>
                                 {% endif %}
                             </div>
-                        </div>
+                        <!-- </div> -->
                         {% endif %}
                     {% endfor %}
                 {% endfor %}
-            
-              </div>
+              </div>  
+          </div>
+          <div class="card-object center bottom">
+            <div class="btn-group" role="group" aria-label="Basic mixed styles example">
+              <button type="button" class="btn btn-primary">Open</button>
+              <button type="button" class="btn btn-success" >Close</button>
+            </div>
           </div>
 
+
         </div>
-
-
       </div>
+      <br>
       {% endfor %}
 
     </div>
-    <br>
+    
 
 </div>
 

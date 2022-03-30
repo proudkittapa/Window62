@@ -14,7 +14,7 @@ username = 'emqx'
 password = 'public'
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://root:root@127.0.0.1:8889/window62"
+app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://root@127.0.0.1:3306/window62"
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 db = SQLAlchemy(app)
 
