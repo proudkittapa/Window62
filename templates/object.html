@@ -22,10 +22,10 @@
                 
                 <td><a href="/object/{{object.obj_id}}">{{ object.obj_id }}</a></td>
                 <td><a href="/object/{{object.obj_id}}">{{ object.obj_name }}</a></td>
-                <td><a href="/object/{{object.obj_id}}">{{ object.obj_status}}</a><br><button name="statusBtn">Change status</button></td>
-                <!-- <button>Change status</button> -->
+                <td><a href="/object/{{object.obj_id}}">{{ object.obj_status}}</a><br>
+                <button name="statusBtn">Change status</button></td>
             </tr>
-            
+
         {% endfor %}
         </table>
         {% endif %}
