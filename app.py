@@ -41,21 +41,22 @@ class Sensor(db.Model):
     obj_id = db.Column(db.Integer)
 
     def __repr__(self):
-        return '<Sensor %r>' % self.sensor_name
+        return '<Object %r>' % self.obj_id
+    
 
 class temp_reading(db.Model):
     temp_id = db.Column(db.Integer, primary_key=True)
     temp_input = db.Column(db.Float)
     sensor_id = db.Column(db.Integer)
     def __repr__(self):
-        return '<Sensor %r>' % self.temp_id
+        return '<temp_reading %r>' % self.temp_id
 
 class ldr_reading(db.Model):
     ldr_id = db.Column(db.Integer, primary_key=True)
     ldr_input = db.Column(db.Float)
     sensor_id = db.Column(db.Integer)
     def __repr__(self):
-        return '<Sensor %r>' % self.ldr_id
+        return '<ldr_reading %r>' % self.ldr_id
 
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code " + str(rc))
@@ -65,13 +66,14 @@ def on_connect(client, userdata, flags, rc):
 
 def on_message(client, userdata, msg):
     print(msg.topic+" "+str(msg.payload.decode()) + '\n')
-    val = float(msg.payload.decode())
     if msg.topic == "WindowTemp":
+        val = float(msg.payload.decode())
         temp = temp_reading(sensor_id=1, temp_input=val)
         insert(temp)
         global tempData
         tempData = str(msg.payload.decode())
     elif msg.topic == "WindowLight":
+        val = float(msg.payload.decode())
         light = ldr_reading(sensor_id=2, ldr_input=val)
         insert(light)
         # print("Light", msg.payload.decode())
@@ -117,7 +119,12 @@ def insert(value):
 def index():
     if request.method == "GET":
         objects = Object.query.all()
-        return render_template("object.html", objects=objects)
+        sensors = []
+        for obj in objects:
+            sensor = Sensor.query.filter_by(obj_id=obj.obj_id).all()
+            sensors.append(sensor)
+       
+        return render_template("object2.html", objects=objects, sensors=sensors, lightData=lightData, tempData=tempData, dustData=dustData, humidityData=humidityData)
 
 @app.route('/object/<int:id>')
 def sensors(id):

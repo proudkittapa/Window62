@@ -34,3 +34,19 @@ td {
 #content {
     width: 70%;
 }
+
+.object-bar{
+    width: 90%;
+    padding: 1rem;
+    background-color: #FFFFFF;
+    justify-content: space-between;
+    /* overflow-x: scroll; */
+}
+.center{
+    text-align: center;
+    
+}
+
+.card-height{
+    height: 100%;
+}
