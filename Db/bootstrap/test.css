@@ -1,0 +1,7 @@
+.object-bar{
+    width: 90%;
+    padding: 1rem;
+    background-color: #FFFFFF;
+    justify-content: space-between;
+    /* overflow-x: scroll; */
+}
