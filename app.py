@@ -8,6 +8,8 @@ broker = 'broker.emqx.io'
 port = 1883
 topic = "test"
 client_id = f'python-mqtt-{random.randint(0, 1000)}'
+client_id2 = f'python-mqtt-{random.randint(0, 1000)}'
+
 username = 'emqx'
 password = 'public'
 
@@ -17,6 +19,10 @@ app.config["TEMPLATES_AUTO_RELOAD"] = True
 db = SQLAlchemy(app)
 
 testData = ""
+tempData = ""
+lightData = ""
+humidityData = ""
+dustData = ""
 
 class Object(db.Model):
     obj_id = db.Column(db.Integer, primary_key=True)
@@ -59,16 +65,27 @@ def on_connect(client, userdata, flags, rc):
 
 def on_message(client, userdata, msg):
     print(msg.topic+" "+str(msg.payload.decode()) + '\n')
+    val = float(msg.payload.decode())
     if msg.topic == "WindowTemp":
-        # temp = temp_reading(sensor_id=3, temp_input=3.3)
-        # insert(temp)
-        print("Temp", msg.payload.decode())
+        temp = temp_reading(sensor_id=1, temp_input=val)
+        insert(temp)
+        global tempData
+        tempData = str(msg.payload.decode())
     elif msg.topic == "WindowLight":
+        light = ldr_reading(sensor_id=2, ldr_input=val)
+        insert(light)
+        # print("Light", msg.payload.decode())
+        global lightData
+        lightData = str(msg.payload.decode())
+    elif msg.topic == "WindowHumidity":
         # light = ldr_reading(sensor_id=1, ldr_input=543)
         # insert(light)
-        print("Light", msg.payload.decode())
-    global testData 
-    testData = str(msg.payload.decode())
+        print("humid", msg.payload.decode())
+        global humidityData
+        humidityData = str(msg.payload.decode())
+
+    # global testData 
+    # testData = str(msg.payload.decode())
 
 def on_disconnect(client, userdata, rc):
     print("Closing data file...")
@@ -81,6 +98,15 @@ client.username_pw_set(username, password)
 
 client.connect(broker, port, 60)
 client.loop_start()
+
+client2 = mqtt.Client(client_id=client_id2)
+client2.on_connect = on_connect
+# client2.on_message = on_message
+# client2.on_disconnect = on_disconnect
+client2.username_pw_set(username, password)
+
+client2.connect(broker, port, 60)
+client2.loop_start()
 
 def insert(value):
     db.session.add(value)
@@ -98,7 +124,21 @@ def sensors(id):
     if request.method == "GET":
         # sensors = Sensor.query.join(Object, Sensor.obj_id==Object.obj_id)
         sensors = Sensor.query.filter_by(obj_id=id).all()
-        return render_template("sensor.html", sensors=sensors, testData=testData)
+        print(sensors)
+        return render_template("sensor.html", sensors=sensors, lightData=lightData, tempData=tempData, testData="")
+
+@app.route("/object/<int:id>/changeStatus")
+def changeStatus(id):
+    object = Object.query.filter_by(obj_id=id).first()
+    print(object.obj_status)
+    status = "close"
+    if object.obj_status == "close":
+        status = "open"
+    result = client2.publish(object.obj_name, status)
+    print("result pub:", result)
+    object.obj_status = status
+    db.session.commit()
+    return render_template("status.html")
 
 if __name__ == '__main__':
     client = mqtt.Client()
