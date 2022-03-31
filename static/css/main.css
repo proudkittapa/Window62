@@ -45,12 +45,16 @@ td {
 .center{
     text-align: center;
 }
+.left{
+    text-align: left;
+    padding-left: 50px;
+    padding-right: 50px;
+}
 .card-height{
     height: 500px;
 }
 .card-object{
     width: 95%;
-    padding: 1%;
     background-color: #3b3c42;
 }
 .bottom{
