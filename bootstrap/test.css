@@ -1,7 +1,48 @@
-.object-bar{
-    width: 90%;
-    padding: 1rem;
-    background-color: #FFFFFF;
-    justify-content: space-between;
-    /* overflow-x: scroll; */
+@import url("https://fonts.googleapis.com/css2?family=Signika+Negative&display=swap");
+* {
+    font-family: 'Signika Negative', sans-serif;
 }
+body, html {
+    margin: 0;
+    /*font-family: sans-serif;*/
+    background-color:#2e2f33;
+}
+
+.center{
+    text-align: center;
+}
+
+.left{
+    text-align: left;
+    padding-left: 50px;
+    padding-right: 50px;
+}
+.card-height{
+    height: 500px;
+}
+.card-object{
+    width: 95%;
+    background-color: #3b3c42;
+}
+.bottom{
+    position: absolute;
+    bottom: 5%;
+}
+.card{
+    background-color: #3b3c42;
+    border: 1px solid;
+    border-color: rgb(235, 254, 255);
+    box-shadow: 1px 1px 5px 2px rgb(0, 255, 242);
+    color: #ffffff;
+}
+
+.box{
+    padding-left: 5%;
+    padding-right: 5%;
+    color: #ffffff;
+}
+.custom-select{
+    position: relative;
+    display: inline;
+}
+
