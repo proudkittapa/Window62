@@ -2,41 +2,91 @@
 
 {% block head %}
 <title>Window62</title>
-<meta http-equiv="refresh" content="5" >
-
 {% endblock %}
 
 {% block body %}
 <div class="container-fluid object-bar">
-  <div class="row">
-    <div class="col">
+  <br>
+        <div class="row">
+          <div class="box">
+            <div class="card card-height" >
+              <div class="card-object center"><br>
+                  <h4 class="card-title" >{{ name }}</h4>
+              </div>
+              <br>
+              <div class="card-object">
+                <h4 class="left">setup</h4>
+                <br>
+                <div class="row left">
+                      <div class="left" >
+                        {% for object in objects %}
+                              <h6 class="row" style="display: inline;">
+                                When  <h6 style="display: inline;">{{object.obj_id}}  </h6>
+                                is  <h6 style="display: inline;">{{object.obj_setup_sign}} </h6> 
+                                than or equal to  <h6 style="display: inline;">{{object.obj_setup_value}}</h6> <span  style="display: inline;">%</span>
+                                make  <h6 style="display: inline;">{{object.obj_setup_status}} </h6>
+                                <div class="custom-select">
+                                  <a href="/object/{{object.obj_id}}/setup/delete/{{object.obj_setup_id}}"><button type="button" class="btn btn-danger">delete</button></a>
+                                </div>
+                              </h6>
+                        
+                          <br>
+                          <br>
+                      </div><hr/>
+                      {% endfor %}
+                      <br>
+                </div>
 
-      <h1>Sign up</h1>
-      <hr>
+                <div class="row left">
+                
+                  <div class="left" >
 
-      <form action="/object/{{id}}/setup" method="POST">
+                        <h6 class="row" style="display: inline;">
+                          When   
+                          <form action="/object/{{id}}/setup" method="POST">
+                          <div class="custom-select" style="width:200px;">
+                            <select id="id" name="id">
+                              {% for sensor in sensors %}
+                              <option value="{{sensor.obj_id}}">{{ sensor.sensor_name }}</option>
+                              {% endfor %}
+                            </select>
+                          </div>
+                          is
+                          <div class="custom-select" style="width:200px;">
+                            <select name="sign">
+                              <option value="more">more</option>
+                              <option value="less">less</option>
+                            </select>
+                          </div>
+                          than or equal to 
+                          <input type="number" style="width:80px; display: inline;"  min="0" max="100" name="value">
+                          <span  style="display: inline;">%</span>
+                          make 
+                          <div class="custom-select" style="width:200px;">
+                            <select name="status">
+                              <option value="close">close</option>
+                              <option value="open">open</option>
+                            </select>
+                          </div>
 
-        <div class="form-group">
-          <label>Username</label>
-          <input type="text" class="form-control" id="username" name="username" placeholder="Select a username">
-        </div>
+                          <div class="custom-select">
+                            <button type="submit" class="btn btn-primary">save</button>
+                          </div>
+                        </form>
 
-        <!-- <div class="form-group">
-          <label>Email</label>
-          <input type="email" class="form-control" id="email" name="email" placeholder="Enter your email">
-        </div>
+                        </h6>
+                    <br>
+                    <br>
 
-        <div class="form-group">
-          <label>Password</label>
-          <input type="password" class="form-control" id="password" name="password" placeholder="Create a password">
-        </div> -->
+                  </div>
+                <hr/>
+                <br>
+              </div>
 
-        <button type="submit" class="btn btn-primary">Sign up</button>
-
-      </form>
-
-    </div>
-  </div>
+              </div>
+            </div>
+          <br>
+        </div>    
 </div>
 
 {% endblock %}

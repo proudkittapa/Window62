@@ -96,8 +96,9 @@ def on_connect(client, userdata, flags, rc):
     client.subscribe("WindowTemp")
     client.subscribe("WindowHumidity")
     client.subscribe("WindowPM25")
-    client.subscribe("WindowStatus")
-    client.subscribe("CurtainStatus")
+    # client.subscribe("WindowStatus")
+    # client.subscribe("CurtainStatus")
+    client.subscribe("Start")
 
 def on_message(client, userdata, msg):
     print(msg.topic+" "+str(msg.payload.decode()) + '\n')
@@ -129,16 +130,10 @@ def on_message(client, userdata, msg):
         print("PM25", msg.payload.decode())
         global pm25Data
         pm25Data = message
-    elif msg.topic == "WindowStatus":
-        print("window status", msg.payload.decode())
-        if message == "close" or message == "open":
-            status(1, message)
-    elif msg.topic == "CurtainStatus":
-        print("window status", msg.payload.decode())
-        if message == "close" or message == "open":
-            status(2, message)
-    # global testData 
-    # testData = str(msg.payload.decode())
+    elif msg.topic == "Start":
+        print("start here")
+        start()
+
 
 def on_disconnect(client, userdata, rc):
     print("Closing data file...")
@@ -201,28 +196,56 @@ def changeStatus(id):
     db.session.commit()
     return render_template("status.html")
 
+def start():
+    objects = Object.query.all()
+    print("objects:", objects)
+    for obj in objects:
+        topic = obj.obj_name+"Cmd"
+        result = client2.publish(topic, obj.obj_status)
+        print("result pub:", result, topic, obj.obj_status)
+
 @app.route("/object/<int:id>/status/<status>")
 def status(id, status):
     object = Object.query.filter_by(obj_id=id).first()
     with app.app_context():
-        if object.obj_status != status:
-            topic = object.obj_name+"Cmd"
-            result = client2.publish(topic, status)
-            print("result pub:", result, topic, status)
-            object.obj_status = status
-            transaction = transaction_obj(obj_id=object.obj_id, obj_status=status)
-            db.session.add(transaction)
-            db.session.commit()
+        topic = object.obj_name+"Cmd"
+        result = client2.publish(topic, status)
+        print("result pub:", result, topic, status)
+        object.obj_status = status
+        transaction = transaction_obj(obj_id=object.obj_id, obj_status=status)
+        db.session.add(transaction)
+        db.session.commit()
         return render_template("status.html")
 
-@app.route("/object/<int:id>/setup", methods=["GET", "POST"])
+@app.route("/object/<int:id>/setup", methods=["GET", "POST", "DELETE"])
 def save_setup(id):
+    print("method", request.method)
     if request.method == "POST":
         req = request.form
-        username = req.get("username")
-        print(username)
-    
-    return render_template("setup.html",id=id)
+        # print("heeeeeree",req.get("id"))
+        setup = object_setup(obj_id=id, obj_setup_value=req.get("value"), obj_setup_sign=req.get("sign"), obj_setup_status=req.get("status"))
+        print(setup)
+        db.session.add(setup)
+        db.session.commit()        
+    object_name = Object.query.filter_by(obj_id=id).first()
+    sensors = Sensor.query.filter_by(obj_id=id).all()
+    print("sensors", sensors)
+    name = object_name.obj_name
+    # name = "test"
+    objects = object_setup.query.filter_by(obj_id=id).all()
+    return render_template("setup.html",id=id, objects=objects, name=name, sensors=sensors)
+
+@app.route("/object/<int:id>/setup/delete/<int:setup_id>", methods=["GET"])
+def delete_setup(id, setup_id):
+    object_setup.query.filter(object_setup.obj_setup_id==setup_id).delete()
+    db.session.commit()
+    object_name = Object.query.filter_by(obj_id=id).first()
+    sensors = Sensor.query.filter_by(obj_id=id).all()
+    print("sensors", sensors)
+    name = object_name.obj_name
+    # name = "test"
+    objects = object_setup.query.filter_by(obj_id=id).all()
+    return render_template("setup.html",id=id, objects=objects, name=name, sensors=sensors)
 
 
 if __name__ == '__main__':
