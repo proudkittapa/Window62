@@ -22,7 +22,7 @@
             {% for object in objects %}
               <div class="left" >
                   <h6 style="display: inline;">
-                    When  <h6 style="display: inline;">{{object.obj_id}}  </h6>
+                    When  <h6 style="display: inline;">{{get_sensor_name_by_setup_id(object.obj_id)}}  </h6>
                     is  <h6 style="display: inline;">{{object.obj_setup_sign}} </h6> 
                     than or equal to  <h6 style="display: inline;">{{object.obj_setup_value}}</h6> <span  style="display: inline;">%</span>
                     make  <h6 style="display: inline;">{{object.obj_setup_status}} </h6>

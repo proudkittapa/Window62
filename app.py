@@ -15,7 +15,7 @@ username = 'emqx'
 password = 'public'
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://root@127.0.0.1:3306/window62"
+app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://root:root@127.0.0.1:8889/window62"
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 app.config['SERVER_NAME'] = "localhost:5555"
 
@@ -233,7 +233,12 @@ def save_setup(id):
     name = object_name.obj_name
     # name = "test"
     objects = object_setup.query.filter_by(obj_id=id).all()
-    return render_template("setup.html",id=id, objects=objects, name=name, sensors=sensors)
+
+    return render_template("setup.html",id=id, objects=objects, name=name, sensors=sensors, get_sensor_name_by_setup_id=get_sensor_name_by_setup_id)
+
+def get_sensor_name_by_setup_id(id):
+    sensor = Sensor.query.filter_by(obj_id=id).first()
+    return sensor.sensor_name
 
 @app.route("/object/<int:id>/setup/delete/<int:setup_id>", methods=["GET"])
 def delete_setup(id, setup_id):
