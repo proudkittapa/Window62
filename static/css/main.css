@@ -51,7 +51,7 @@ td {
     padding-right: 50px;
 }
 .card-height{
-    height: 99%;
+    height: 500px;
 }
 .card-object{
     width: 95%;
@@ -67,4 +67,28 @@ td {
     border-color: rgb(235, 254, 255);
     box-shadow: 1px 1px 5px 2px rgb(0, 255, 242);
     color: #ffffff;
+}
+.cardsetup{
+    background-color: #3b3c42;
+    border: 1px solid;
+    border-color: rgb(235, 254, 255);
+    box-shadow: 1px 1px 5px 2px rgb(0, 255, 242);
+    color: #ffffff;
+    padding-bottom: 5%;
+}
+.form-inline {  
+    flex-flow: row wrap;
+    align-items: center;
+  }
+.form-inline label {
+    margin: 5px 10px 5px 0;
+  }
+.box{
+    padding-left: 5%;
+    padding-right: 5%;
+    color: #ffffff;
+}
+.custom-select{
+    position: relative;
+    display: inline;
 }
