@@ -29,13 +29,13 @@
                             <div class="left" >
                                 <h5 class="col-md-4 card-title " style="display: inline;">{{ sensor.sensor_name}}</h5>
                                 {% if sensor.sensor_name == "LDR" %}
-                                    <h6 class="col-md-4" style="display: inline;">{{ lightData }} %</h6>
+                                    <h6 class="col-md-4" style="display: inline;">{{ lightData }} {{sensor.sensor_unit}}</h6>
                                 {% elif sensor.sensor_name == "Temperature" %}
-                                    <h6 class="col-md-4" style="display: inline;">{{ tempData }} °C</h6>
+                                    <h6 class="col-md-4" style="display: inline;">{{ tempData }} {{sensor.sensor_unit}}</h6>
                                 {% elif sensor.sensor_name == "Humidity" %}
-                                    <h6 class="col-md-4" style="display: inline;">{{ humidityData }}</h6>
+                                    <h6 class="col-md-4" style="display: inline;">{{ humidityData }} {{sensor.sensor_unit}}</h6>
                                 {% elif sensor.sensor_name == "Dust" %}
-                                    <h6 class="col-md-4" style="display: inline;">{{ pm25Data }} µg/m³</h6>
+                                    <h6 class="col-md-4" style="display: inline;">{{ pm25Data }} {{sensor.sensor_unit}}</h6>
                                 {% endif %}
                                 <br>
                                 <br>

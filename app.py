@@ -28,6 +28,13 @@ humidityData = "disconnected"
 dustData = "disconnected"
 pm25Data = "disconnected"
 
+class object_setup(db.Model):
+    obj_setup_id = db.Column(db.Integer, primary_key=True)
+    obj_id = db.Column(db.Integer)
+    obj_setup_value = db.Column(db.Float)
+    obj_setup_sign = db.Column(db.String(10))
+    obj_setup_status = db.Column(db.String(20))
+
 class Object(db.Model):
     obj_id = db.Column(db.Integer, primary_key=True)
     obj_name = db.Column(db.String(20))
@@ -43,7 +50,7 @@ class Sensor(db.Model):
     sensor_name = db.Column(db.String(20))
     sensor_description = db.Column(db.String(100), nullable=True)
     obj_id = db.Column(db.Integer)
-
+    sensor_unit = db.Column(db.String(10), nullable=True)
     def __repr__(self):
         return '<Object %r>' % self.obj_id
     
@@ -207,8 +214,18 @@ def status(id, status):
             db.session.add(transaction)
             db.session.commit()
         return render_template("status.html")
-        
+
+@app.route("/object/<int:id>/setup", methods=["GET", "POST"])
+def save_setup(id):
+    if request.method == "POST":
+        req = request.form
+        username = req.get("username")
+        print(username)
+    
+    return render_template("setup.html",id=id)
+
 
 if __name__ == '__main__':
     client = mqtt.Client()
     app.run( debug=True, host='localhost', port=5555)
+
