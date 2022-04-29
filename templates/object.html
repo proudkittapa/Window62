@@ -2,6 +2,8 @@
 
 {% block head %}
 <title>Window62</title>
+<meta http-equiv="refresh" content="5" >
+
 {% endblock %}
 
 {% block body %}
@@ -18,12 +20,11 @@
         </tr>
         {% for object in objects%}
             
-            <tr>
-                
+            <tr>  
                 <td><a href="/object/{{object.obj_id}}">{{ object.obj_id }}</a></td>
                 <td><a href="/object/{{object.obj_id}}">{{ object.obj_name }}</a></td>
                 <td><a href="/object/{{object.obj_id}}">{{ object.obj_status}}</a><br>
-                <button name="statusBtn">Change status</button></td>
+                <a href="/object/{{object.obj_id}}/changeStatus"><button name="statusBtn">Change status</button></td></a>
             </tr>
 
         {% endfor %}

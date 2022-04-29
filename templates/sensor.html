@@ -21,11 +21,22 @@
             <tr>
                 <td>{{ sensor.sensor_id }}</td>
                 <td>{{ sensor.sensor_name }}</td>
-                <td>{{ testData }}</td>
+            {% if sensor.sensor_name == "LDR" %}
+                <td>{{ lightData }}</td>
+            {% elif sensor.sensor_name == "Temp" %}
+                <td>{{ tempData }}</td>
+            {% elif sensor.sensor_name == "Humidity" %}
+                <td>{{ humidityData }}</td>
+            {% elif sensor.sensor_name == "Dust" %}
+                <td>{{ dustData }}</td>
+            {% endif %}
             </tr>
+
         {% endfor %}
     </table>
     {% endif %}
+
+    <a href="/"><button>Back</button></a>
     <!-- <form action="/" method="POST" style="text-align: center">
         <input type="text" name="content" id="content">
         <input type="submit" value="Add Task">
