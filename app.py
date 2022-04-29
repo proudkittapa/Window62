@@ -149,8 +149,6 @@ client.loop_start()
 
 client2 = mqtt.Client(client_id=client_id2)
 client2.on_connect = on_connect
-# client2.on_message = on_message
-# client2.on_disconnect = on_disconnect
 client2.username_pw_set(username, password)
 
 client2.connect(broker, port, 60)
@@ -231,14 +229,16 @@ def save_setup(id):
     sensors = Sensor.query.filter_by(obj_id=id).all()
     print("sensors", sensors)
     name = object_name.obj_name
-    # name = "test"
     objects = object_setup.query.filter_by(obj_id=id).all()
-
-    return render_template("setup.html",id=id, objects=objects, name=name, sensors=sensors, get_sensor_name_by_setup_id=get_sensor_name_by_setup_id)
+    return render_template("setup.html",id=id, objects=objects, name=name, sensors=sensors, get_sensor_name_by_setup_id=get_sensor_name_by_setup_id, get_sensor_unit_by_setup_id=get_sensor_unit_by_setup_id, unit="")
 
 def get_sensor_name_by_setup_id(id):
     sensor = Sensor.query.filter_by(obj_id=id).first()
     return sensor.sensor_name
+
+def get_sensor_unit_by_setup_id(id):
+    sensor = Sensor.query.filter_by(obj_id=id).first()
+    return sensor.sensor_unit
 
 @app.route("/object/<int:id>/setup/delete/<int:setup_id>", methods=["GET"])
 def delete_setup(id, setup_id):

@@ -10,7 +10,9 @@
 <div class="container-fluid object-bar">
     <br>
     <div class="row">
+      <br><br>
         {% for object in objects%}
+
       <div class="col-md-6">
         <div class="card card-height" >
           <div class="card-object center"><br>
@@ -52,7 +54,7 @@
             <div class="btn-group" role="group" aria-label="Basic mixed styles example">
               <a href="/object/{{object.obj_id}}/status/open"><button type="button" class="btn btn-primary">Open</button></a>
               <a href="/object/{{object.obj_id}}/status/close"><button type="button" class="btn btn-success" >Close</button></a>
-              <a href="/object/{{object.obj_id}}/setup"><button type="button" class="btn btn-success" >Setup</button></a>
+              <a href="/object/{{object.obj_id}}/setup"><button style="color: white;" type="button" class="btn btn-secondary" >Setup</button></a>
             </div>
           </div>
         </div>
@@ -61,7 +63,7 @@
       {% endfor %}
 
     </div>
-    
+
 
 </div>
 

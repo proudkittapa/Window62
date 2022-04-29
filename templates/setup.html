@@ -24,7 +24,7 @@
                   <h6 style="display: inline;">
                     When <h6 style="display: inline;">{{get_sensor_name_by_setup_id(object.obj_id)}}  </h6>
                     sensor is <h6 style="display: inline;">{{object.obj_setup_sign}} </h6> 
-                    than or equal to <h6 style="display: inline;">{{object.obj_setup_value}}</h6> <span  style="display: inline;">%</span>
+                    than or equal to <h6 style="display: inline;">{{object.obj_setup_value}}</h6> <span  style="display: inline;">{{get_sensor_unit_by_setup_id(object.obj_id)}}</span>
                     make <h6 style="display: inline;">{{object.obj_setup_status}} </h6>
                     <div class="custom-select">
                       <a href="/object/{{object.obj_id}}/setup/delete/{{object.obj_setup_id}}"><button type="button" class="btn btn-danger">delete</button></a>
@@ -44,6 +44,7 @@
                 <div class="custom-select" style="width:200px;">
                   <select id="id" name="id">
                     {% for sensor in sensors %}
+                    {% set unit = sensor.sensor_unit %}
                     <option value="{{sensor.obj_id}}">{{ sensor.sensor_name }}</option>
                     {% endfor %}
                   </select>
@@ -57,7 +58,7 @@
                 </div>
                 <label>than or equal to </label>
                 <input type="number" style="width:80px; display: inline;"  min="0" max="100" name="value">
-                <span  style="display: inline;">%</span>
+                <span  style="display: inline;">{{unit}}</span>
                 <label>make {{ name }}</label>
                 <div class="custom-select" style="width:200px;">
                   <select name="status">
@@ -77,7 +78,7 @@
             <br>
           </div>
           <div class="row right"> 
-            <button class="btn btn-back">back</button>
+            <a href="/"><button class="btn btn-back">back</button></a>
           </div>
 
         </div>
