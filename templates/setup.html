@@ -6,6 +6,13 @@
 
 {% block body %}
 <div class="container-fluid object-bar">
+  {% with messages = get_flashed_messages() %}
+  {% if messages%}
+      <div class="exists">
+        <h3 style="color:white"> {{ messages[0] }}.</h3>
+      </div>
+  {% endif %}
+  {% endwith %}
   <br>
   <div class="row">
     
@@ -44,8 +51,8 @@
                 <div class="custom-select" style="width:200px;">
                   <select id="id" name="id">
                     {% for sensor in sensors %}
-                    {% set unit = sensor.sensor_unit %}
-                    <option value="{{sensor.obj_id}}">{{ sensor.sensor_name }}</option>
+                    <!-- {% set unit = sensor.sensor_unit %} -->
+                    <option value="{{sensor.obj_id}}">{{ sensor.sensor_name }} {{sensor.sensor_unit}}</option>
                     {% endfor %}
                   </select>
                 </div>
@@ -58,7 +65,7 @@
                 </div>
                 <label>than or equal to </label>
                 <input type="number" style="width:80px; display: inline;"  min="0" max="100" name="value">
-                <span  style="display: inline;">{{unit}}</span>
+                <!-- <span  style="display: inline;">{{unit}}</span> -->
                 <label>make {{ name }}</label>
                 <div class="custom-select" style="width:200px;">
                   <select name="status">

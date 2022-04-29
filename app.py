@@ -1,6 +1,8 @@
+from contextlib import redirect_stderr
 from os import stat
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, flash, url_for, redirect
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.exc import IntegrityError
 import paho.mqtt.client as mqtt
 import random
 import time
@@ -15,6 +17,7 @@ username = 'emqx'
 password = 'public'
 
 app = Flask(__name__)
+app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://root:root@127.0.0.1:8889/window62"
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 app.config['SERVER_NAME'] = "localhost:5555"
@@ -91,17 +94,17 @@ class transaction_obj(db.Model):
         return '<ldr_reading %r>' % self.tran_id   
 
 def on_connect(client, userdata, flags, rc):
-    print("Connected with result code " + str(rc))
+    # print("Connected with result code " + str(rc))
     client.subscribe("WindowLight")
     client.subscribe("WindowTemp")
     client.subscribe("WindowHumidity")
     client.subscribe("WindowPM25")
-    # client.subscribe("WindowStatus")
-    # client.subscribe("CurtainStatus")
+    client.subscribe("ConfirmWindowCmd")
+    client.subscribe("ConfirmCurtainCmd")
     client.subscribe("Start")
 
 def on_message(client, userdata, msg):
-    print(msg.topic+" "+str(msg.payload.decode()) + '\n')
+    # print(msg.topic+" "+str(msg.payload.decode()) + '\n')
     message = str(msg.payload.decode())
     if msg.topic == "WindowTemp":
         val = float(msg.payload.decode())
@@ -120,18 +123,18 @@ def on_message(client, userdata, msg):
         val = float(msg.payload.decode())
         humid = humidity_reading(sensor_id=3, humidity_input=val)
         insert(humid)
-        print("humid", msg.payload.decode())
+        # print("humid", msg.payload.decode())
         global humidityData
         humidityData = message
     elif msg.topic == "WindowPM25":
         val = float(msg.payload.decode())
         pm = pm_reading(sensor_id=4, pm_input=val)
         insert(pm)
-        print("PM25", msg.payload.decode())
+        # print("PM25", msg.payload.decode())
         global pm25Data
         pm25Data = message
     elif msg.topic == "Start":
-        print("start here")
+        # print("start here")
         start()
 
 
@@ -158,15 +161,17 @@ def insert(value):
     db.session.add(value)
     db.session.commit()
 
-
 @app.route('/')
 def index():
     if request.method == "GET":
         objects = Object.query.all()
         sensors = []
         for obj in objects:
-            sensor = Sensor.query.filter_by(obj_id=obj.obj_id).all()
-            sensors.append(sensor)
+            try:
+                sensor = Sensor.query.filter_by(obj_id=obj.obj_id).all()
+                sensors.append(sensor)
+            except:
+                return "There was an issue addign task"
        
         return render_template("object2.html", objects=objects, sensors=sensors, lightData=lightData, tempData=tempData, pm25Data=pm25Data, humidityData=humidityData)
 
@@ -175,13 +180,13 @@ def sensors(id):
     if request.method == "GET":
         # sensors = Sensor.query.join(Object, Sensor.obj_id==Object.obj_id)
         sensors = Sensor.query.filter_by(obj_id=id).all()
-        print(sensors)
+        # print(sensors)
         return render_template("sensor.html", sensors=sensors, lightData=lightData, tempData=tempData, testData="")
 
 @app.route("/object/<int:id>/changeStatus")
 def changeStatus(id):
     object = Object.query.filter_by(obj_id=id).first()
-    print(object.obj_status)
+    # print(object.obj_status)
     status = "close"
     if object.obj_status == "close":
         status = "open"
@@ -196,7 +201,7 @@ def changeStatus(id):
 
 def start():
     objects = Object.query.all()
-    print("objects:", objects)
+    # print("objects:", objects)
     for obj in objects:
         topic = obj.obj_name+"Cmd"
         result = client2.publish(topic, obj.obj_status)
@@ -217,19 +222,34 @@ def status(id, status):
 
 @app.route("/object/<int:id>/setup", methods=["GET", "POST", "DELETE"])
 def save_setup(id):
-    print("method", request.method)
-    if request.method == "POST":
-        req = request.form
-        # print("heeeeeree",req.get("id"))
-        setup = object_setup(obj_id=id, obj_setup_value=req.get("value"), obj_setup_sign=req.get("sign"), obj_setup_status=req.get("status"))
-        print(setup)
-        db.session.add(setup)
-        db.session.commit()        
+    objects = object_setup.query.filter_by(obj_id=id).all()
     object_name = Object.query.filter_by(obj_id=id).first()
     sensors = Sensor.query.filter_by(obj_id=id).all()
-    print("sensors", sensors)
     name = object_name.obj_name
-    objects = object_setup.query.filter_by(obj_id=id).all()
+    if request.method == "POST":
+        req = request.form
+        setup = object_setup(obj_id=id, obj_setup_value=req.get("value"), obj_setup_sign=req.get("sign"), obj_setup_status=req.get("status"))
+        #check conditions
+        allow = True
+        for object in objects:
+            if (object.obj_setup_sign == "more" and float(setup.obj_setup_value) >= object.obj_setup_value) or (object.obj_setup_sign == "less" and float(setup.obj_setup_value) <= object.obj_setup_value):
+                flash("The condition is not possible")
+                allow = False
+                break
+        if allow:
+            try:
+                db.session.add(setup)
+                db.session.commit()
+                return redirect("/object/"+str(id)+"/setup")
+                # return render_template("setup.html",id=id, objects=objects, name=name, sensors=sensors, get_sensor_name_by_setup_id=get_sensor_name_by_setup_id, get_sensor_unit_by_setup_id=get_sensor_unit_by_setup_id, unit="")
+            except:
+                db.session.rollback()
+                flash("The condition already existed")
+        topic = "Conditions"
+        sensor_name = get_sensor_name_by_setup_id(setup.obj_id)
+        setup_str = str(setup.obj_setup_id)+","+sensor_name+","+setup.obj_setup_sign+","+str(setup.obj_setup_value)
+        result = client2.publish(topic, setup_str)
+        print("result pub:", result, topic, status)      
     return render_template("setup.html",id=id, objects=objects, name=name, sensors=sensors, get_sensor_name_by_setup_id=get_sensor_name_by_setup_id, get_sensor_unit_by_setup_id=get_sensor_unit_by_setup_id, unit="")
 
 def get_sensor_name_by_setup_id(id):
@@ -244,13 +264,11 @@ def get_sensor_unit_by_setup_id(id):
 def delete_setup(id, setup_id):
     object_setup.query.filter(object_setup.obj_setup_id==setup_id).delete()
     db.session.commit()
-    object_name = Object.query.filter_by(obj_id=id).first()
-    sensors = Sensor.query.filter_by(obj_id=id).all()
-    print("sensors", sensors)
-    name = object_name.obj_name
-    # name = "test"
-    objects = object_setup.query.filter_by(obj_id=id).all()
-    return render_template("setup.html",id=id, objects=objects, name=name, sensors=sensors)
+    topic = "Conditions"
+    msg = str(setup_id)+",Cancel"
+    result = client2.publish(topic, msg)
+    print("result pub:", result, topic, msg)   
+    return redirect("/object/"+str(id)+"/setup")
 
 
 if __name__ == '__main__':
