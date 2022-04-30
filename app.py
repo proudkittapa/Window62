@@ -292,7 +292,6 @@ def save_setup(id):
                 db.session.commit()
                 topic = "Conditions"
                 # add_schedule()
-
                 sensor_name = get_sensor_name_by_setup_id(setup.obj_id)
                 setup_str = str(setup.obj_setup_id) + "," + sensor_name + "," + setup.obj_setup_sign + "," + str(
                     setup.obj_setup_value)
