@@ -3,8 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 import paho.mqtt.client as mqtt
 import random
 from flask_apscheduler import APScheduler
-
-from apscheduler.schedulers.background import BackgroundScheduler
+import atexit
 
 broker = 'broker.emqx.io'
 port = 1883
@@ -23,32 +22,28 @@ app.config['SERVER_NAME'] = "localhost:5555"
 
 db = SQLAlchemy(app)
 
-testData = ""
 tempData = "disconnected"
 lightData = "disconnected"
 humidityData = "disconnected"
 dustData = "disconnected"
 pm25Data = "disconnected"
 
-
 scheduler = APScheduler()
+scheduler.daemonic = False
 
 
-def add_schedule():
-    # schedule.add_job(publish("test", "msgg"), 'interval', seconds=5)
-    # scheduler.add_job(id = 'Scheduled Task', func=publish("test", "mssss"), trigger="interval", seconds=3)
+class Topic:
+    def __init__(self, topic, message):
+        self.topic = topic
+        self.message = message
 
-    scheduler.add_job(id = 'Scheduled Task', func=test, trigger="interval", seconds=3)
-    scheduler.start()
+    def publish(self):
+        result = client2.publish(self.topic, self.message)
+        print("result pub:", result, self.topic, self.message)
 
-
-def test():
-    print("test")
-
-
-def publish(topic, msg):
-    result = client2.publish(topic, msg)
-    print("result pub:", result, topic, msg)
+    def add_schedule(self):
+        scheduler.add_job(id='Scheduled Task', func=self.publish, trigger="interval", seconds=3)
+        scheduler.start()
 
 
 class object_setup(db.Model):
@@ -217,121 +212,108 @@ def index():
                                pm25Data=pm25Data, humidityData=humidityData)
 
 
-@app.route('/object/<int:id>')
-def sensors(id):
+@app.route('/object/<int:obj_id>')
+def sensors(obj_id):
     if request.method == "GET":
         # sensors = Sensor.query.join(Object, Sensor.obj_id==Object.obj_id)
-        sensors_query = Sensor.query.filter_by(obj_id=id).all()
-        # print(sensors)
-        return render_template("sensor.html", sensors=sensors_query, lightData=lightData, tempData=tempData,
-                               testData="")
+        sensors_query = Sensor.query.filter_by(obj_id=obj_id).all()
+        return render_template("sensor.html", sensors=sensors_query, lightData=lightData, tempData=tempData)
 
 
-@app.route("/object/<int:id>/changeStatus")
-def changeStatus(id):
-    object_query = Object.query.filter_by(obj_id=id).first()
-    # print(object.obj_status)
-    status = "close"
+@app.route("/object/<int:obj_id>/changeStatus")
+def change_status(obj_id):
+    object_query = Object.query.filter_by(obj_id=obj_id).first()
+    curr_status = "close"
     if object_query.obj_status == "close":
-        status = "open"
+        curr_status = "open"
     topic = object_query.obj_name + "Cmd"
-    result = client2.publish(topic, status)
-    print("result pub:", result, topic, status)
+    Topic(topic, curr_status).publish()
     object_query.obj_status = status
     transaction = transaction_obj(obj_id=object_query.obj_id, obj_status=status)
-    db.session.add(transaction)
-    db.session.commit()
+    insert(transaction)
     return render_template("status.html")
 
 
 def start():
     objects = Object.query.all()
-    # print("objects:", objects)
     for obj in objects:
         topic = obj.obj_name + "Cmd"
-        result = client2.publish(topic, obj.obj_status)
-        print("result pub:", result, topic, obj.obj_status)
+        Topic(topic, obj.obj_status).publish()
 
 
-@app.route("/object/<int:id>/status/<status>")
-def status(id, status):
-    object = Object.query.filter_by(obj_id=id).first()
+@app.route("/object/<int:obj_id>/status/<status>")
+def status(obj_id, curr_status):
+    obj = Object.query.filter_by(obj_id=obj_id).first()
     with app.app_context():
-        topic = object.obj_name + "Cmd"
-        result = client2.publish(topic, status)
-        print("result pub:", result, topic, status)
-        object.obj_status = status
-        transaction = transaction_obj(obj_id=object.obj_id, obj_status=status)
-        db.session.add(transaction)
-        db.session.commit()
+        topic = obj.obj_name + "Cmd"
+        Topic(topic, curr_status).publish()
+        obj.obj_status = curr_status
+        transaction = transaction_obj(obj_id=obj.obj_id, obj_status=curr_status)
+        insert(transaction)
         return render_template("status.html")
 
 
-@app.route("/object/<int:id>/setup", methods=["GET", "POST", "DELETE"])
-def save_setup(id):
-    objects = object_setup.query.filter_by(obj_id=id).all()
-    object_name = Object.query.filter_by(obj_id=id).first()
-    sensors = Sensor.query.filter_by(obj_id=id).all()
+@app.route("/object/<int:obj_id>/setup", methods=["GET", "POST", "DELETE"])
+def save_setup(obj_id):
+    objects = object_setup.query.filter_by(obj_id=obj_id).all()
+    object_name = Object.query.filter_by(obj_id=obj_id).first()
+    sensors = Sensor.query.filter_by(obj_id=obj_id).all()
     name = object_name.obj_name
     if request.method == "POST":
         req = request.form
-        setup = object_setup(obj_id=id, obj_setup_value=req.get("value"), obj_setup_sign=req.get("sign"),
+        setup = object_setup(obj_id=obj_id, obj_setup_value=req.get("value"), obj_setup_sign=req.get("sign"),
                              obj_setup_status=req.get("status"))
         # check conditions
         allow = True
-        for object in objects:
+        for obj in objects:
             # TODO fix logic (didn't check sensors)
-            if (object.obj_setup_sign == "more" and float(setup.obj_setup_value) >= object.obj_setup_value) or (
-                    object.obj_setup_sign == "less" and float(setup.obj_setup_value) <= object.obj_setup_value):
+            if (obj.obj_id != setup.obj_id) and ((obj.obj_setup_sign == "more" and float(setup.obj_setup_value) >= obj.obj_setup_value) or (
+                    obj.obj_setup_sign == "less" and float(setup.obj_setup_value) <= obj.obj_setup_value)):
                 flash("The condition is not possible")
                 allow = False
                 break
         if allow:
             try:
-                db.session.add(setup)
-                db.session.commit()
+                insert(setup)
                 topic = "Conditions"
-                # add_schedule()
                 sensor_name = get_sensor_name_by_setup_id(setup.obj_id)
                 setup_str = str(setup.obj_setup_id) + "," + sensor_name + "," + setup.obj_setup_sign + "," + str(
                     setup.obj_setup_value)
-                result = client2.publish(topic, setup_str)
-                print("result pub:", result, topic, setup_str)
-                add_schedule()
-                return redirect("/object/" + str(id) + "/setup")
-                # return render_template("setup.html",id=id, objects=objects, name=name, sensors=sensors,
-                # get_sensor_name_by_setup_id=get_sensor_name_by_setup_id,
-                # get_sensor_unit_by_setup_id=get_sensor_unit_by_setup_id, unit="")
+                save_topic = Topic(topic, setup_str)
+                save_topic.publish()
+                # t = Topic("test", "msg")
+                # t.add_schedule()
+                return redirect("/object/" + str(obj_id) + "/setup")
             except:
                 db.session.rollback()
                 flash("The condition already existed")
 
-    return render_template("setup.html", id=id, objects=objects, name=name, sensors=sensors,
+    return render_template("setup.html", id=obj_id, objects=objects, name=name, sensors=sensors,
                            get_sensor_name_by_setup_id=get_sensor_name_by_setup_id,
                            get_sensor_unit_by_setup_id=get_sensor_unit_by_setup_id, unit="")
 
 
-def get_sensor_name_by_setup_id(id):
-    sensor = Sensor.query.filter_by(obj_id=id).first()
+def get_sensor_name_by_setup_id(setup_id):
+    sensor = Sensor.query.filter_by(obj_id=setup_id).first()
     return sensor.sensor_name
 
 
-def get_sensor_unit_by_setup_id(id):
-    sensor = Sensor.query.filter_by(obj_id=id).first()
+def get_sensor_unit_by_setup_id(setup_id):
+    sensor = Sensor.query.filter_by(obj_id=setup_id).first()
     return sensor.sensor_unit
 
 
-@app.route("/object/<int:id>/setup/delete/<int:setup_id>", methods=["GET"])
-def delete_setup(id, setup_id):
+@app.route("/object/<int:obj_id>/setup/delete/<int:setup_id>", methods=["GET"])
+def delete_setup(obj_id, setup_id):
     object_setup.query.filter(object_setup.obj_setup_id == setup_id).delete()
     db.session.commit()
     topic = "Conditions"
     msg = str(setup_id) + ",Cancel"
-    result = client2.publish(topic, msg)
-    print("result pub:", result, topic, msg)
-    return redirect("/object/" + str(id) + "/setup")
+    Topic(topic, msg).publish()
+    return redirect("/object/" + str(obj_id) + "/setup")
 
 
 if __name__ == '__main__':
     client = mqtt.Client()
     app.run(debug=True, host='localhost', port=5555)
+    atexit.register(lambda: scheduler.shutdown())
