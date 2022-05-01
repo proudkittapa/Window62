@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="control.css">
+    <!-- Option 1: Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>control</title>
+  </head>
+
+  <body>
+  <div class="head" >
+      <button class="head-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-arrow-left-circle" viewBox="0 0 16 16" color="white">
+              <path fill-rule="evenodd" d="M1 8a7 7 0 1 0 14 0A7 7 0 0 0 1 8zm15 0A8 8 0 1 1 0 8a8 8 0 0 1 16 0zm-4.5-.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H11.5z"/>
+          </svg>
+      </button>
+      <h1 class="head-text" >Window 1 Control</h1>
+  </div>
+
+  <div class="container" >
+      <div class="btn-box" >
+          <div class="status d-flex align-items-end flex-column bd-highlight mb-3">
+            <div class="align-self-center">
+                <button class="btn">Open</button>
+                <button class="btn">Close</button>
+            </div>
+          </div>
+      </div>
+      <div class="container center" >
+          <p>Current Status</p>
+          <div class="status-round">
+              <h1>Close</h1>
+          </div>
+      </div>
+
+      <div class="sensor-box">
+          <div class="row">
+              <span class="vertical-line1"></span>
+              <span class="vertical-line2"></span>
+              <div class="col">
+                  <p>Temp</p>
+                  <span>25C</span>
+              </div>
+              <div class="col">
+                  <p>humidity</p>
+                  <span>25%</span>
+              </div>
+              <div class="col">
+                  <p>Dust</p>
+                  <span>25%</span>
+              </div>
+          </div>
+      </div>
+
+      <button class="set-box">
+          <div class="row" >
+            <p class="col">Set Condition</p>
+              <p class="col right">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-compact-right" viewBox="0 0 16 16">
+                      <path fill-rule="evenodd" d="M6.776 1.553a.5.5 0 0 1 .671.223l3 6a.5.5 0 0 1 0 .448l-3 6a.5.5 0 1 1-.894-.448L9.44 8 6.553 2.224a.5.5 0 0 1 .223-.671z"/>
+                    </svg></p></div>
+      </button>
+
+      <button class="set-box">
+          <div class="row">
+            <p class="col">Set Time</p>
+              <p class="col right">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-compact-right" viewBox="0 0 16 16">
+                  <path fill-rule="evenodd" d="M6.776 1.553a.5.5 0 0 1 .671.223l3 6a.5.5 0 0 1 0 .448l-3 6a.5.5 0 1 1-.894-.448L9.44 8 6.553 2.224a.5.5 0 0 1 .223-.671z"/>
+                </svg></p></div>
+      </button>
+
+
+
+  </div>
+
+
+
+
+  </body>
+</html>
