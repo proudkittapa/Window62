@@ -14,8 +14,9 @@
         <div class="col">
           <div class="card">
             <div class="card-body">
-
-                <h3 class="card-title">{{ object.obj_name }}</h3>
+                <a href="/object/{{object.obj_id}}" style="color: #FFFFFF; text-decoration: none;">
+                    <h3 class="card-title" >{{ object.obj_name }}</h3>
+                </a>
                 <div class="row">
                     <div class="col-md-6">
                         <div class="status d-flex align-items-end flex-column bd-highlight mb-3">
@@ -58,6 +59,5 @@
         </div>
       </div>
       {% endfor %}
-
       </div><!--end container-->
 {% endblock %}

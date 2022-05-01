@@ -1,3 +1,5 @@
+import uuid
+
 from flask import Flask, render_template, request, flash, url_for, redirect
 from flask_sqlalchemy import SQLAlchemy
 import paho.mqtt.client as mqtt
@@ -41,9 +43,9 @@ class Topic:
         result = client2.publish(self.topic, self.message)
         print("result pub:", result, self.topic, self.message)
 
-    def add_schedule(self):
-        scheduler.add_job(id='Scheduled Task', func=self.publish, trigger="interval", seconds=3)
-        scheduler.start()
+    # def add_schedule(self):
+    #     scheduler.add_job(id="sch", func=self.publish, trigger="interval", seconds=3)
+    #     scheduler.start()
 
 
 class object_setup(db.Model):
@@ -52,6 +54,36 @@ class object_setup(db.Model):
     obj_setup_value = db.Column(db.Float)
     obj_setup_sign = db.Column(db.String(10))
     obj_setup_status = db.Column(db.String(20))
+
+    def __init__(self):
+        self.msg = None
+        self.topic = None
+
+    def insert(self):
+        db.session.add(self)
+        db.session.commit()
+
+    def publish(self):
+        result = client2.publish(self.topic, self.message)
+        print("result pub:", result, self.topic, self.message)
+
+    def add_topic(self, topic, msg):
+        self.topic = topic
+        self.msg = msg
+
+
+class ObjectSchedule(Topic):
+    def __init__(self, topic, message):
+        super().__init__(topic, message)
+        self.sch_id = str(uuid.uuid4())
+        # self.sch_id = sch_id
+
+    def add(self, day, hour, minute):
+        scheduler.add_job(id="sch"+self.sch_id, func=self.publish, trigger="cron", day_of_week=day, hour=hour, minute=minute)
+        scheduler.start()
+
+    def remove(self):
+        scheduler.remove_job("sch"+self.sch_id)
 
 
 class Object(db.Model):
@@ -64,6 +96,10 @@ class Object(db.Model):
     def __repr__(self):
         return '<Object %r>' % self.obj_name
 
+    def insert(self):
+        db.session.add(self)
+        db.session.commit()
+
 
 class Sensor(db.Model):
     sensor_id = db.Column(db.Integer, primary_key=True)
@@ -75,6 +111,10 @@ class Sensor(db.Model):
     def __repr__(self):
         return '<Object %r>' % self.obj_id
 
+    def insert(self):
+        db.session.add(self)
+        db.session.commit()
+
 
 class temp_reading(db.Model):
     temp_id = db.Column(db.Integer, primary_key=True)
@@ -83,6 +123,10 @@ class temp_reading(db.Model):
 
     def __repr__(self):
         return '<temp_reading %r>' % self.temp_id
+
+    def insert(self):
+        db.session.add(self)
+        db.session.commit()
 
 
 class ldr_reading(db.Model):
@@ -93,6 +137,10 @@ class ldr_reading(db.Model):
     def __repr__(self):
         return '<ldr_reading %r>' % self.ldr_id
 
+    def insert(self):
+        db.session.add(self)
+        db.session.commit()
+
 
 class humidity_reading(db.Model):
     humidity_id = db.Column(db.Integer, primary_key=True)
@@ -101,6 +149,10 @@ class humidity_reading(db.Model):
 
     def __repr__(self):
         return '<ldr_reading %r>' % self.humidity_id
+
+    def insert(self):
+        db.session.add(self)
+        db.session.commit()
 
 
 class pm_reading(db.Model):
@@ -111,6 +163,10 @@ class pm_reading(db.Model):
     def __repr__(self):
         return '<ldr_reading %r>' % self.pm_id
 
+    def insert(self):
+        db.session.add(self)
+        db.session.commit()
+
 
 class transaction_obj(db.Model):
     tran_id = db.Column(db.Integer, primary_key=True)
@@ -119,6 +175,22 @@ class transaction_obj(db.Model):
 
     def __repr__(self):
         return '<ldr_reading %r>' % self.tran_id
+
+    def insert(self):
+        db.session.add(self)
+        db.session.commit()
+
+
+class object_time_setting(db.Model):
+    obj_ts_id = db.Column(db.Integer, primary_key=True)
+    obj_id = db.Column(db.Integer)
+    obj_ts_time = db.Column(db.DateTime)
+    obj_ts_day = db.Column(db.String(20))
+    obj_ts_created = db.Column(db.DateTime)
+
+    def insert(self):
+        db.session.add(self)
+        db.session.commit()
 
 
 def on_connect(client, userdata, flags, rc):
@@ -137,35 +209,30 @@ def on_message(client, userdata, msg):
     message = str(msg.payload.decode())
     if msg.topic == "WindowTemp":
         val = float(msg.payload.decode())
-        temp = temp_reading(sensor_id=1, temp_input=val)
-        insert(temp)
+        temp_reading(sensor_id=1, temp_input=val).insert()
         global tempData
         tempData = message
     elif msg.topic == "WindowLight":
         val = float(msg.payload.decode())
-        light = ldr_reading(sensor_id=2, ldr_input=val)
-        insert(light)
+        ldr_reading(sensor_id=2, ldr_input=val).insert()
         print("Light", message)
         global lightData
         lightData = message
     elif msg.topic == "WindowHumidity":
         val = float(msg.payload.decode())
-        humid = humidity_reading(sensor_id=3, humidity_input=val)
-        insert(humid)
+        humidity_reading(sensor_id=3, humidity_input=val).insert()
         print("humid", message)
         global humidityData
         humidityData = message
     elif msg.topic == "WindowPM25":
         print("topic", msg.topic)
         val = float(msg.payload.decode())
-        pm = pm_reading(sensor_id=4, pm_input=val)
-        insert(pm)
+        pm_reading(sensor_id=4, pm_input=val).insert()
         print("PM25", message)
         global pm25Data
         pm25Data = message
     elif msg.topic == "Start":
         print("start here")
-
         start()
 
 
@@ -189,11 +256,6 @@ client2.username_pw_set(username, password)
 
 client2.connect(broker, port, 60)
 client2.loop_start()
-
-
-def insert(value):
-    db.session.add(value)
-    db.session.commit()
 
 
 @app.route('/')
@@ -231,8 +293,7 @@ def change_status(obj_id):
     topic = object_query.obj_name + "Cmd"
     Topic(topic, curr_status).publish()
     object_query.obj_status = status
-    transaction = transaction_obj(obj_id=object_query.obj_id, obj_status=status)
-    insert(transaction)
+    transaction_obj(obj_id=object_query.obj_id, obj_status=status).insert()
     return render_template("status.html")
 
 
@@ -250,8 +311,7 @@ def status(obj_id, curr_status):
         topic = obj.obj_name + "Cmd"
         Topic(topic, curr_status).publish()
         obj.obj_status = curr_status
-        transaction = transaction_obj(obj_id=obj.obj_id, obj_status=curr_status)
-        insert(transaction)
+        transaction_obj(obj_id=obj.obj_id, obj_status=curr_status).insert()
         return render_template("status.html")
 
 
@@ -277,15 +337,13 @@ def save_setup(obj_id):
                 break
         if allow:
             try:
-                insert(setup)
+                setup.insert()
                 topic = "Conditions"
                 sensor_name = get_sensor_name_by_setup_id(setup.obj_id)
                 setup_str = str(setup.obj_setup_id) + "," + sensor_name + "," + setup.obj_setup_sign + "," + str(
                     setup.obj_setup_value)
                 save_topic = Topic(topic, setup_str)
                 save_topic.publish()
-                # t = Topic("test", "msg")
-                # t.add_schedule()
                 return redirect("/object/" + str(obj_id) + "/setup")
             except:
                 db.session.rollback()
