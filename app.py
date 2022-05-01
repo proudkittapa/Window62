@@ -19,6 +19,7 @@ password = 'public'
 app = Flask(__name__)
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://root:root@127.0.0.1:8889/window62"
+# app.config['SQLALCHEMY_DATABASE_URI'] = "mysql://root@127.0.0.1:3306/window62"
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 app.config['SERVER_NAME'] = "localhost:5555"
 
@@ -55,35 +56,28 @@ class object_setup(db.Model):
     obj_setup_sign = db.Column(db.String(10))
     obj_setup_status = db.Column(db.String(20))
 
-    def __init__(self):
-        self.msg = None
-        self.topic = None
-
     def insert(self):
         db.session.add(self)
         db.session.commit()
 
-    def publish(self):
-        result = client2.publish(self.topic, self.message)
-        print("result pub:", result, self.topic, self.message)
-
-    def add_topic(self, topic, msg):
-        self.topic = topic
-        self.msg = msg
 
 
 class ObjectSchedule(Topic):
-    def __init__(self, topic, message):
+    def __init__(self, topic, message, sch_id):
         super().__init__(topic, message)
-        self.sch_id = str(uuid.uuid4())
+        self.sch_id = sch_id
         # self.sch_id = sch_id
 
     def add(self, day, hour, minute):
         scheduler.add_job(id="sch"+self.sch_id, func=self.publish, trigger="cron", day_of_week=day, hour=hour, minute=minute)
         scheduler.start()
 
+    def add_interval(self):
+        scheduler.add_job(id=self.sch_id, func=self.publish, trigger="interval", seconds=3)
+        scheduler.start()
+
     def remove(self):
-        scheduler.remove_job("sch"+self.sch_id)
+        scheduler.remove_job(self.sch_id)
 
 
 class Object(db.Model):
@@ -315,15 +309,15 @@ def status(obj_id, curr_status):
         return render_template("status.html")
 
 
-@app.route("/object/<int:obj_id>/setup", methods=["GET", "POST", "DELETE"])
-def save_setup(obj_id):
-    objects = object_setup.query.filter_by(obj_id=obj_id).all()
-    object_name = Object.query.filter_by(obj_id=obj_id).first()
-    sensors = Sensor.query.filter_by(obj_id=obj_id).all()
+@app.route("/object/<int:obj_id_para>/setup", methods=["GET", "POST", "DELETE"])
+def save_setup(obj_id_para):
+    objects = object_setup.query.filter_by(obj_id=obj_id_para).all()
+    object_name = Object.query.filter_by(obj_id=obj_id_para).first()
+    sensors = Sensor.query.filter_by(obj_id=obj_id_para).all()
     name = object_name.obj_name
     if request.method == "POST":
         req = request.form
-        setup = object_setup(obj_id=obj_id, obj_setup_value=req.get("value"), obj_setup_sign=req.get("sign"),
+        setup = object_setup(obj_id=obj_id_para, obj_setup_value=req.get("value"), obj_setup_sign=req.get("sign"),
                              obj_setup_status=req.get("status"))
         # check conditions
         allow = True
@@ -344,12 +338,14 @@ def save_setup(obj_id):
                     setup.obj_setup_value)
                 save_topic = Topic(topic, setup_str)
                 save_topic.publish()
-                return redirect("/object/" + str(obj_id) + "/setup")
+                sch = ObjectSchedule("test", "setup", setup.obj_setup_id)
+                sch.add_interval()
+                return redirect("/object/" + str(obj_id_para) + "/setup")
             except:
                 db.session.rollback()
                 flash("The condition already existed")
 
-    return render_template("setup.html", id=obj_id, objects=objects, name=name, sensors=sensors,
+    return render_template("setup.html", id=obj_id_para, objects=objects, name=name, sensors=sensors,
                            get_sensor_name_by_setup_id=get_sensor_name_by_setup_id,
                            get_sensor_unit_by_setup_id=get_sensor_unit_by_setup_id, unit="")
 
@@ -367,6 +363,7 @@ def get_sensor_unit_by_setup_id(setup_id):
 @app.route("/object/<int:obj_id>/setup/delete/<int:setup_id>", methods=["GET"])
 def delete_setup(obj_id, setup_id):
     object_setup.query.filter(object_setup.obj_setup_id == setup_id).delete()
+    # scheduler.remove_job(setup_id)
     db.session.commit()
     topic = "Conditions"
     msg = str(setup_id) + ",Cancel"
