@@ -1,0 +1,142 @@
+.head {
+    color: white;
+    padding: 1em 2em;
+}
+
+.head-icon {
+    position: relative;
+    display: inline-block;
+    bottom: 8px;
+    display: inline-block;
+    background-color: #2e2f33;
+    border: 2px solid;
+    border-color: #2e2f33;
+    border-radius: 50%;
+}
+.head-text {
+    position: relative;
+    display: inline-block;
+}
+.center{
+    text-align: center;
+}
+
+.cardsetup-box {
+    background-color: #3b3c42;
+    // background-color: #2e2f33;
+    border: 2px solid;
+    border-color: rgb(235, 254, 255);
+    box-shadow: 0px 0px 5px 1px rgb(0, 255, 242);
+    padding: 1em;
+    border-radius: 30px;
+}
+.btn-del{
+    background-color: #2e2f33;
+    border: 2px solid;
+    border-color: #2e2f33;
+    border-radius: 50%;
+}
+
+.custom-select{
+    position: relative;
+    display: inline;
+
+}
+.custom-select select {
+    width:80px;
+    display: inline;
+    background-color: #3b4048ff;
+    border-radius: 10px;
+    border: 2px solid;
+    border-color: #595959
+}
+.custom-input {
+    width:80px;
+    display: inline;
+    background-color: #3b4048ff;
+    border-radius: 10px;
+    border: 2px solid;
+    border-color: #595959
+}
+
+/*Form*/
+.form-inline {
+    flex-flow: row wrap;
+    align-items: center;
+  }
+.form-inline label {
+    margin: 5px 10px 5px 0;
+  }
+.custom-select{
+    position: relative;
+    display: inline;
+}
+.flex-left{
+    display: flex;
+    justify-content: left;
+}
+.flex-right{
+    display: flex;
+    justify-content: right;
+}
+
+.day {
+  /*display: block;*/
+  position: relative;
+  width: 50px;
+  height: 50px;
+  padding: 1em;
+  margin: .5px;
+  /*background-color: #ddd;*/
+  user-select: none;
+}
+
+.dayselect {
+  /*display: block;*/
+  position: relative;
+  width: 50px;
+  height: 50px;
+  padding: 1em;
+  margin: .5px;
+  cursor: pointer;
+  /*background-color: #ddd;*/
+  user-select: none;
+}
+
+/* Hide the browser's default checkbox */
+.dayselect input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+
+}
+
+/* Create a custom checkbox */
+.checkmark {
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  background-color: #3b3c42;
+  border: 1px solid;
+  border-color: #595959;
+  border-radius: 50%;
+  text-align: center;
+  justify-content: center;
+}
+
+/* On mouse-over, add a grey background color */
+.dayselect:hover input ~ .checkmark {
+  background-color: #ccc;
+}
+
+/* When the checkbox is checked, add a blue background */
+.dayselect input:checked ~ .checkmark {
+  background-color: #45818eff;
+}
