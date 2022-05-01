@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<title>Window62</title>
+<meta http-equiv="refresh" content="5" >
+{% endblock %}
+
+{% block body %}
+    <br>
+      <!-- body -->
+    <div class="container">
+        {% for object in objects%}
+      <div class="row">
+        <div class="col">
+          <div class="card">
+            <div class="card-body">
+
+                <h3 class="card-title">{{ object.obj_name }}</h3>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="status d-flex align-items-end flex-column bd-highlight mb-3">
+                            <p class="mb-auto p-2 bd-highlight align-self-center">Status</p>
+                            <h1 class="mb-auto p-2 bd-highlight align-self-center">{{ object.obj_status }}</h1>
+                            <div class="align-self-center">
+                                <a href="/object/{{object.obj_id}}/status/open"><button type="button" class="btn btn-primary" style="border-radius: 100px;">Open</button></a>
+                                <a href="/object/{{object.obj_id}}/status/close"><button type="button" class="btn btn-success"  style="border-radius: 100px;">Close</button></a>
+                                <a href="/object/{{object.obj_id}}/setup"><button type="button" class="btn btn-secondary"  style="border-radius: 100px;">Setup</button></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="sensor">
+                            {% for s in sensors %}
+                            {% for sensor in s %}
+                            {% if sensor.obj_id == object.obj_id %}
+                            <div class="row">
+                              <h6 >{{sensor.sensor_name}}</h6>
+                                {% if sensor.sensor_name == "LDR" %}
+                                <h6 class="sensor-value" >{{ lightData }} {{sensor.sensor_unit}}</h6>
+                                {% elif sensor.sensor_name == "Temperature" %}
+                                <h6 class="sensor-value" >{{ tempData }} {{sensor.sensor_unit}}</h6>
+                                {% elif sensor.sensor_name == "Humidity" %}
+                                <h6 class="sensor-value" >{{ humidityData }} {{sensor.sensor_unit}}</h6>
+                                {% elif sensor.sensor_name == "Dust" %}
+                                <h6 class="sensor-value" >{{ pm25Data }} {{sensor.sensor_unit}}</h6>
+                                {% endif %}
+                              <br><hr/>
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                            {% endfor %}
+                      </div>
+                  </div>
+                </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+
+      </div><!--end container-->
+{% endblock %}

@@ -1,0 +1,63 @@
+
+.center{
+    text-align: center;
+}
+
+.card{
+    margin: 1em;
+    padding: 1em;
+    background-color: #3b4048ff;
+    border: 2px solid;
+    border-color: #595959;
+    border-radius: 15px;
+    box-shadow: 0px 0px 5px 1px rgb(0, 255, 242);
+    color: #fff;
+}
+
+.status {
+  /*flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  display: flex;*/
+  height: 100%;
+  // background-color:red;
+}
+
+circle {
+  border-radius: 100px;
+}
+
+.sensor{
+    position: relative;
+    padding: 20px 30px 20px 30px;
+    border: 2px solid;
+    border-color: #595959;
+    border-radius: 10px;
+    height: 100%;
+}
+hr {
+    color: #fff;
+    box-shadow: 0px 0px 2px 1px rgb(0, 255, 242);
+    }
+.sensor-value{
+    position: absolute;
+    text-align: right;
+    display: inline;
+    padding-right: 60px;
+}
+h6 {
+    line-height: 1.7rem;
+}
+
+
+
+.box{
+    padding-left: 5%;
+    padding-right: 5%;
+    color: #ffffff;
+}
+.custom-select{
+    position: relative;
+    display: inline;
+}
+

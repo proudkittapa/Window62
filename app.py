@@ -208,16 +208,18 @@ def index():
             except:
                 return "There was an issue adding task"
 
-        return render_template("object2.html", objects=objects, sensors=sensors, lightData=lightData, tempData=tempData,
+        return render_template("page1.html", objects=objects, sensors=sensors, lightData=lightData, tempData=tempData,
                                pm25Data=pm25Data, humidityData=humidityData)
 
 
 @app.route('/object/<int:obj_id>')
-def sensors(obj_id):
+def obj_sensors_control(obj_id):
     if request.method == "GET":
         # sensors = Sensor.query.join(Object, Sensor.obj_id==Object.obj_id)
         sensors_query = Sensor.query.filter_by(obj_id=obj_id).all()
-        return render_template("sensor.html", sensors=sensors_query, lightData=lightData, tempData=tempData)
+        object_query = Object.query.filter_by(obj_id=obj_id).first()
+        return render_template("control.html", sensors=sensors_query, object=object_query, lightData=lightData,
+                               tempData=tempData, pm25Data=pm25Data, humidityData=humidityData)
 
 
 @app.route("/object/<int:obj_id>/changeStatus")
@@ -241,7 +243,7 @@ def start():
         Topic(topic, obj.obj_status).publish()
 
 
-@app.route("/object/<int:obj_id>/status/<status>")
+@app.route("/object/<int:obj_id>/status/<curr_status>")
 def status(obj_id, curr_status):
     obj = Object.query.filter_by(obj_id=obj_id).first()
     with app.app_context():
@@ -267,7 +269,8 @@ def save_setup(obj_id):
         allow = True
         for obj in objects:
             # TODO fix logic (didn't check sensors)
-            if (obj.obj_id != setup.obj_id) and ((obj.obj_setup_sign == "more" and float(setup.obj_setup_value) >= obj.obj_setup_value) or (
+            if (obj.obj_id != setup.obj_id) and (
+                    (obj.obj_setup_sign == "more" and float(setup.obj_setup_value) >= obj.obj_setup_value) or (
                     obj.obj_setup_sign == "less" and float(setup.obj_setup_value) <= obj.obj_setup_value)):
                 flash("The condition is not possible")
                 allow = False
