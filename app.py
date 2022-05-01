@@ -1,3 +1,4 @@
+import datetime
 import uuid
 
 from flask import Flask, render_template, request, flash, url_for, redirect
@@ -31,9 +32,6 @@ humidityData = "disconnected"
 dustData = "disconnected"
 pm25Data = "disconnected"
 
-scheduler = APScheduler()
-scheduler.daemonic = False
-
 
 class Topic:
     def __init__(self, topic, message):
@@ -61,19 +59,21 @@ class object_setup(db.Model):
         db.session.commit()
 
 
+scheduler = APScheduler()
+scheduler.daemonic = False
+
 
 class ObjectSchedule(Topic):
     def __init__(self, topic, message, sch_id):
         super().__init__(topic, message)
         self.sch_id = sch_id
-        # self.sch_id = sch_id
 
-    def add(self, day, hour, minute):
-        scheduler.add_job(id="sch"+self.sch_id, func=self.publish, trigger="cron", day_of_week=day, hour=hour, minute=minute)
+    def add(self, day, hr, min):
+        scheduler.add_job(id=str(self.sch_id), func=self.publish, trigger="cron", day_of_week=day, hour=hr, minute=min)
         scheduler.start()
 
     def add_interval(self):
-        scheduler.add_job(id=self.sch_id, func=self.publish, trigger="interval", seconds=3)
+        scheduler.add_job(id=str(self.sch_id), func=self.publish, trigger="interval", seconds=3)
         scheduler.start()
 
     def remove(self):
@@ -178,13 +178,26 @@ class transaction_obj(db.Model):
 class object_time_setting(db.Model):
     obj_ts_id = db.Column(db.Integer, primary_key=True)
     obj_id = db.Column(db.Integer)
-    obj_ts_time = db.Column(db.DateTime)
+    obj_ts_hour = db.Column(db.Integer)
+    obj_ts_min = db.Column(db.Integer)
     obj_ts_day = db.Column(db.String(20))
     obj_ts_created = db.Column(db.DateTime)
+    obj_ts_value = db.Column(db.String(10))
 
     def insert(self):
         db.session.add(self)
         db.session.commit()
+
+    def get_days(self):
+        li = list(self.obj_ts_day[1:-1].split(","))
+        li2 = []
+        for i in li:
+            if i != "":
+                li2.append(int(i))
+        return li2
+
+    def get_days_string(self):
+        return self.obj_ts_day[1:-1]
 
 
 def on_connect(client, userdata, flags, rc):
@@ -308,6 +321,48 @@ def status(obj_id, curr_status):
         transaction_obj(obj_id=obj.obj_id, obj_status=curr_status).insert()
         return render_template("status.html")
 
+@app.route("/object/<int:obj_id>/setup/delete/<int:settime_id>", methods=["GET"])
+def delete_setting(obj_id, settime_id):
+    object_time_setting.query.filter(object_time_setting.obj_ts_id == settime_id).delete()
+    db.session.commit()
+    scheduler.remove_job(str(settime_id))
+    return redirect("/object/" + str(obj_id) + "/settime")
+
+
+@app.route("/object/<int:obj_id>/settime", methods=["GET", "POST", "DELETE"])
+def set_time(obj_id):
+    objects_setting = object_time_setting.query.filter_by(obj_id=obj_id).all()
+    object_query = Object.query.filter_by(obj_id=obj_id).first()
+    sensors = Sensor.query.filter_by(obj_id=obj_id).all()
+    name = object_query.obj_name
+    if request.method == "GET":
+        return render_template("settime.html", id=obj_id, objects=objects_setting, name=name, sensors=sensors )
+    elif request.method == "POST":
+        req = request.form
+        hour = 0
+        min = 0
+        print("test", req.get("hour"))
+        if req.get("hour") != "":
+            hour = int(req.get("hour"))
+        if req.get("min") != "":
+            min = int(req.get("min"))
+        setting_status = req.get("status")
+        day = []
+        for k, v in request.form.items():
+            if k == "hour" or k == "min" or k == "status":
+                pass
+            else:
+                day.append(int(v))
+        setting = object_time_setting(obj_id=int(obj_id), obj_ts_value=setting_status, obj_ts_hour=hour, obj_ts_min=min, obj_ts_day=str(day))
+        setting.insert()
+        print("idddd", setting.obj_ts_id)
+        new_schedule = ObjectSchedule("test", "message", setting.obj_ts_id)
+        new_schedule.add(setting.get_days_string(), setting.obj_ts_hour, setting.obj_ts_min)
+        # new_schedule.add_interval()
+        # print("jobs", new_schedule.scheduler.get_jobs())
+        return redirect("/object/" + str(obj_id) + "/settime")
+        # return render_template("settime.html", id=obj_id, objects=objects_setting, name=name, sensors=sensors)
+
 
 @app.route("/object/<int:obj_id_para>/setup", methods=["GET", "POST", "DELETE"])
 def save_setup(obj_id_para):
@@ -370,12 +425,9 @@ def delete_setup(obj_id, setup_id):
     Topic(topic, msg).publish()
     return redirect("/object/" + str(obj_id) + "/setup")
 
-@app.route("/object/<int:obj_id>/settime", methods=["GET", "POST", "DELETE"])
-def set_time(obj_id):
-    if request.method == "GET":
-        return render_template("settime.html")
+
+
 
 if __name__ == '__main__':
     client = mqtt.Client()
     app.run(debug=True, host='localhost', port=5555)
-    atexit.register(lambda: scheduler.shutdown())
