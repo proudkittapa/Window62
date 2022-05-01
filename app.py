@@ -370,6 +370,10 @@ def delete_setup(obj_id, setup_id):
     Topic(topic, msg).publish()
     return redirect("/object/" + str(obj_id) + "/setup")
 
+@app.route("/object/<int:obj_id>/settime", methods=["GET", "POST", "DELETE"])
+def set_time(obj_id):
+    if request.method == "GET":
+        return render_template("settime.html")
 
 if __name__ == '__main__':
     client = mqtt.Client()
