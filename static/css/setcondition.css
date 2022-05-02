@@ -35,7 +35,9 @@
     border: 2px solid;
     border-color: #2e2f33;
     border-radius: 50%;
+    margin-bottom: 20px;
 }
+
 .flex-left{
     display: flex;
     justify-content: left;

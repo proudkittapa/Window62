@@ -393,8 +393,8 @@ def save_setup(obj_id_para):
                     setup.obj_setup_value)
                 save_topic = Topic(topic, setup_str)
                 save_topic.publish()
-                sch = ObjectSchedule("test", "setup", setup.obj_setup_id)
-                sch.add_interval()
+                # sch = ObjectSchedule("test", "setup", setup.obj_setup_id)
+                # sch.add_interval()
                 return redirect("/object/" + str(obj_id_para) + "/setup")
             except:
                 db.session.rollback()
@@ -428,4 +428,6 @@ def delete_setup(obj_id, setup_id):
 
 if __name__ == '__main__':
     client = mqtt.Client()
+    print("scheduler", scheduler.get_jobs())
+
     app.run(debug=True, host='localhost', port=5555)
