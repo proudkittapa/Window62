@@ -400,7 +400,7 @@ def save_setup(obj_id_para):
                 db.session.rollback()
                 flash("The condition already existed")
 
-    return render_template("setup.html", id=obj_id_para, objects=objects, name=name, sensors=sensors,
+    return render_template("setcondition.html", id=obj_id_para, objects=objects, name=name, sensors=sensors,
                            get_sensor_name_by_setup_id=get_sensor_name_by_setup_id,
                            get_sensor_unit_by_setup_id=get_sensor_unit_by_setup_id, unit="")
 
@@ -424,8 +424,6 @@ def delete_setup(obj_id, setup_id):
     msg = str(setup_id) + ",Cancel"
     Topic(topic, msg).publish()
     return redirect("/object/" + str(obj_id) + "/setup")
-
-
 
 
 if __name__ == '__main__':
