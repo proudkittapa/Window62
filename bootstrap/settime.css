@@ -40,11 +40,11 @@
 .custom-select{
     position: relative;
     display: inline;
-
 }
 .custom-select select {
     width:80px;
     display: inline;
+    color: #ffffff;
     background-color: #3b4048ff;
     border-radius: 10px;
     border: 2px solid;
@@ -52,7 +52,7 @@
 }
 .custom-input {
     width:80px;
-    display: inline;
+    color: #ffffff;
     background-color: #3b4048ff;
     border-radius: 10px;
     border: 2px solid;
@@ -67,10 +67,6 @@
 .form-inline label {
     margin: 5px 5px 10px;
   }
-.custom-select{
-    position: relative;
-    display: inline;
-}
 .oneline {
     white-space: nowrap;
 }

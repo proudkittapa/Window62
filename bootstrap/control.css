@@ -25,7 +25,7 @@
   min-width: 100%;
   display: inline-block;
 }
-.btn{
+.btn-control{
   display: inline-block;
   background-color: #3b4048ff;
   color: #fff;
@@ -59,13 +59,14 @@
 
 .sensor-box {
     position: relative;
-    margin: 1em;
+    margin: 1em 0em;
     padding: 1em 1em 1.5em;
     background-color: #2e2f33;
     border: 2px solid;
     border-color: #595959;
     border-radius: 15px;
     color: #fff;
+    width: 100%;
     text-align: center;
 }
 span {
@@ -91,13 +92,14 @@ span {
 
 .set-box {
     background-color: #3b4048ff;
-    padding: 20px 5px 5px;
-    margin: .5em;
+    padding: 20px 20px 5px;
+    margin: .5em 0em;
     border: 2px solid;
     border-color: #3b4048ff;
     border-radius: 15px;
     color: #fff;
     width: 100%;
+    text-align: left;
 }
 .right {
     text-align: right;
