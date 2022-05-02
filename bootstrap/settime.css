@@ -65,12 +65,16 @@
     align-items: center;
   }
 .form-inline label {
-    margin: 5px 10px 5px 0;
+    margin: 5px 5px 10px;
   }
 .custom-select{
     position: relative;
     display: inline;
 }
+.oneline {
+    white-space: nowrap;
+}
+
 .flex-left{
     display: flex;
     justify-content: left;
@@ -128,7 +132,6 @@
   border-color: #595959;
   border-radius: 50%;
   text-align: center;
-  justify-content: center;
 }
 
 /* On mouse-over, add a grey background color */
