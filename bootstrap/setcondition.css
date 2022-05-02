@@ -53,7 +53,7 @@
     white-space: nowrap;
 }
 .custom-select select {
-    max-width:200px;
+    max-width:100px;
     display: inline;
     background-color: #3b4048ff;
     border-radius: 10px;
