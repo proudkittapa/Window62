@@ -47,12 +47,13 @@ class Topic:
     #     scheduler.start()
 
 
-class object_setup(db.Model):
-    obj_setup_id = db.Column(db.Integer, primary_key=True)
+class object_condition_setting(db.Model):
+    obj_cs_id = db.Column(db.Integer, primary_key=True)
     obj_id = db.Column(db.Integer)
-    obj_setup_value = db.Column(db.Float)
-    obj_setup_sign = db.Column(db.String(10))
-    obj_setup_status = db.Column(db.String(20))
+    obj_cs_sensor_id = db.Column(db.Integer)
+    obj_cs_value = db.Column(db.Float)
+    obj_cs_sign = db.Column(db.String(10))
+    obj_cs_status = db.Column(db.String(20))
 
     def insert(self):
         db.session.add(self)
@@ -321,16 +322,19 @@ def status(obj_id, curr_status):
         transaction_obj(obj_id=obj.obj_id, obj_status=curr_status).insert()
         return render_template("status.html")
 
-@app.route("/object/<int:obj_id>/setup/delete/<int:settime_id>", methods=["GET"])
-def delete_setting(obj_id, settime_id):
+@app.route("/object/<int:obj_id>/settime/delete/<int:settime_id>", methods=["GET"])
+def delete_time_setting(obj_id, settime_id):
     object_time_setting.query.filter(object_time_setting.obj_ts_id == settime_id).delete()
     db.session.commit()
-    scheduler.remove_job(str(settime_id))
+    try:
+        scheduler.remove_job(str(settime_id))
+    except:
+        flash("The job is deleted")
     return redirect("/object/" + str(obj_id) + "/settime")
 
 
 @app.route("/object/<int:obj_id>/settime", methods=["GET", "POST", "DELETE"])
-def set_time(obj_id):
+def save_time_setting(obj_id):
     objects_setting = object_time_setting.query.filter_by(obj_id=obj_id).all()
     object_query = Object.query.filter_by(obj_id=obj_id).first()
     sensors = Sensor.query.filter_by(obj_id=obj_id).all()
@@ -354,10 +358,15 @@ def set_time(obj_id):
             else:
                 day.append(int(v))
         setting = object_time_setting(obj_id=int(obj_id), obj_ts_value=setting_status, obj_ts_hour=hour, obj_ts_min=min, obj_ts_day=str(day))
-        setting.insert()
-        print("idddd", setting.obj_ts_id)
-        new_schedule = ObjectSchedule("test", "message", setting.obj_ts_id)
-        new_schedule.add(setting.get_days_string(), setting.obj_ts_hour, setting.obj_ts_min)
+        try:
+            setting.insert()
+            print("idddd", setting.obj_ts_id)
+            new_schedule = ObjectSchedule("test", "message", setting.obj_ts_id)
+            new_schedule.add(setting.get_days_string(), setting.obj_ts_hour, setting.obj_ts_min)
+            return redirect("/object/" + str(obj_id) + "/settime")
+        except Exception as error:
+            flash("The condition already existed")
+            return redirect("/object/" + str(obj_id) + "/settime")
         # new_schedule.add_interval()
         # print("jobs", new_schedule.scheduler.get_jobs())
         return redirect("/object/" + str(obj_id) + "/settime")
@@ -365,59 +374,60 @@ def set_time(obj_id):
 
 
 @app.route("/object/<int:obj_id_para>/setup", methods=["GET", "POST", "DELETE"])
-def save_setup(obj_id_para):
-    objects = object_setup.query.filter_by(obj_id=obj_id_para).all()
+def save_condition_setting(obj_id_para):
+    objects = object_condition_setting.query.filter_by(obj_id=obj_id_para).all()
     object_name = Object.query.filter_by(obj_id=obj_id_para).first()
     sensors = Sensor.query.filter_by(obj_id=obj_id_para).all()
     name = object_name.obj_name
     if request.method == "POST":
         req = request.form
-        setup = object_setup(obj_id=obj_id_para, obj_setup_value=req.get("value"), obj_setup_sign=req.get("sign"),
-                             obj_setup_status=req.get("status"))
+        setup = object_condition_setting(obj_id=obj_id_para, obj_cs_value=req.get("value"), obj_cs_sign=req.get("sign"),
+                             obj_cs_status=req.get("status"), obj_cs_sensor_id=req.get("sensor_id"))
         # check conditions
         allow = True
         for obj in objects:
             # TODO fix logic (didn't check sensors)
             if (obj.obj_id != setup.obj_id) and (
-                    (obj.obj_setup_sign == "more" and float(setup.obj_setup_value) >= obj.obj_setup_value) or (
-                    obj.obj_setup_sign == "less" and float(setup.obj_setup_value) <= obj.obj_setup_value)):
-                flash("The condition is not possible")
+                    (obj.obj_cs_sign == "more" and float(setup.obj_cs_value) >= obj.obj_cs_value) or (
+                    obj.obj_cs_sign == "less" and float(setup.obj_cs_value) <= obj.obj_cs_value)):
                 allow = False
-                break
+                print("allow", allow)
+                flash("The condition is not possible")
+                # return redirect("/object/" + str(obj_id_para) + "/setup")
         if allow:
             try:
                 setup.insert()
                 topic = "Conditions"
-                sensor_name = get_sensor_name_by_setup_id(setup.obj_id)
-                setup_str = str(setup.obj_setup_id) + "," + sensor_name + "," + setup.obj_setup_sign + "," + str(
-                    setup.obj_setup_value)
+                sensor_name = get_sensor_name_by_setup_id(setup.obj_cs_sensor_id)
+                setup_str = str(setup.obj_cs_id) + "," + sensor_name + "," + setup.obj_cs_sign + "," + str(
+                    setup.obj_cs_value)
                 save_topic = Topic(topic, setup_str)
                 save_topic.publish()
-                # sch = ObjectSchedule("test", "setup", setup.obj_setup_id)
-                # sch.add_interval()
+                # print("in inserteddd")
+                # flash("inserted")
                 return redirect("/object/" + str(obj_id_para) + "/setup")
-            except:
+            except Exception as error:
+                print("innnnn except", error)
                 db.session.rollback()
                 flash("The condition already existed")
-
+                return redirect("/object/" + str(obj_id_para) + "/setup")
     return render_template("setcondition.html", id=obj_id_para, objects=objects, name=name, sensors=sensors,
                            get_sensor_name_by_setup_id=get_sensor_name_by_setup_id,
                            get_sensor_unit_by_setup_id=get_sensor_unit_by_setup_id, unit="")
 
-
-def get_sensor_name_by_setup_id(setup_id):
-    sensor = Sensor.query.filter_by(obj_id=setup_id).first()
+def get_sensor_name_by_setup_id(setup_sensor_id):
+    sensor = Sensor.query.filter_by(sensor_id=setup_sensor_id).first()
     return sensor.sensor_name
 
 
-def get_sensor_unit_by_setup_id(setup_id):
-    sensor = Sensor.query.filter_by(obj_id=setup_id).first()
+def get_sensor_unit_by_setup_id(setup_sensor_id):
+    sensor = Sensor.query.filter_by(sensor_id=setup_sensor_id).first()
     return sensor.sensor_unit
 
 
 @app.route("/object/<int:obj_id>/setup/delete/<int:setup_id>", methods=["GET"])
-def delete_setup(obj_id, setup_id):
-    object_setup.query.filter(object_setup.obj_setup_id == setup_id).delete()
+def delete_condition_setting(obj_id, setup_id):
+    object_condition_setting.query.filter(object_condition_setting.obj_cs_id == setup_id).delete()
     # scheduler.remove_job(setup_id)
     db.session.commit()
     topic = "Conditions"

@@ -5,7 +5,16 @@
 {% endblock %}
 
 {% block body %}
+      {% with messages = get_flashed_messages() %}
+      {% if messages%}
+          <div class="exists">
+            <h3 style="color:white"> {{ messages[0] }}.</h3>
+          </div>
+      {% endif %}
+      {% endwith %}
+      
     <div class="head" >
+      
         <a href="/object/{{id}}">
         <button class="head-icon">
             <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-arrow-left-circle" viewBox="0 0 16 16" color="white">
@@ -24,35 +33,34 @@
          <br>
         <div class="row d-flex align-items-center" >
           <div class="col-3 col-md-1 ">
-              <p>{{object.obj_setup_status}}</p>
+              <p>{{object.obj_cs_status}}</p>
           </div>
           <div class="col-3 col-md-1  ">
             <p>when</p>
           </div>
           <div class="col-5 col-md-2  ">
-            <p>{{get_sensor_name_by_setup_id(object.obj_id)}} </p>
+            <p>{{get_sensor_name_by_setup_id(object.obj_cs_sensor_id)}} </p>
           </div>
           <div class="col">
-            <p>is {{object.obj_setup_sign}}</p>
+            <p>is {{object.obj_cs_sign}}</p>
           </div>
           <div class="col oneline">
             <p>than or equal to </p>
           </div>
           <div class="col">
-            <p>{{object.obj_setup_value}} {{get_sensor_unit_by_setup_id(object.obj_id)}}</p>
+            <p>{{object.obj_cs_value}} {{get_sensor_unit_by_setup_id(object.obj_cs_sensor_id)}}</p>
           </div>
           <div class="col">
+            <a href="/object/{{object.obj_id}}/setup/delete/{{object.obj_cs_id}}">
             <button class="btn-del" >
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash3" viewBox="0 0 16 16" color="white" >
                 <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5ZM11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H2.506a.58.58 0 0 0-.01 0H1.5a.5.5 0 0 0 0 1h.538l.853 10.66A2 2 0 0 0 4.885 16h6.23a2 2 0 0 0 1.994-1.84l.853-10.66h.538a.5.5 0 0 0 0-1h-.995a.59.59 0 0 0-.01 0H11Zm1.958 1-.846 10.58a1 1 0 0 1-.997.92h-6.23a1 1 0 0 1-.997-.92L3.042 3.5h9.916Zm-7.487 1a.5.5 0 0 1 .528.47l.5 8.5a.5.5 0 0 1-.998.06L5 5.03a.5.5 0 0 1 .47-.53Zm5.058 0a.5.5 0 0 1 .47.53l-.5 8.5a.5.5 0 1 1-.998-.06l.5-8.5a.5.5 0 0 1 .528-.47ZM8 4.5a.5.5 0 0 1 .5.5v8.5a.5.5 0 0 1-1 0V5a.5.5 0 0 1 .5-.5Z"/>
               </svg>
             </button>
+          </a>
           </div>
         </div><hr>
         {% endfor %}
-
-
-
         <form class="form-inline" action="/object/{{id}}/setup" method="POST">
           <div class="row row-cols-7 d-flex align-items-center">
           <div class="col-3 col-md-1 oneline">
@@ -69,9 +77,9 @@
 
               <div class="col-5 col-md-2">
                 <div class="custom-select" >
-                  <select id="id" name="id" style="width:140px;">
+                  <select id="id" name="sensor_id" style="width:140px;">
                     {% for sensor in sensors %}
-                    <option value="{{sensor.obj_id}}">{{ sensor.sensor_name }} {{sensor.sensor_unit}}</option>
+                    <option value="{{sensor.sensor_id}}">{{ sensor.sensor_name }} {{sensor.sensor_unit}}</option>
                     {% endfor %}
                   </select>
                 </div>
