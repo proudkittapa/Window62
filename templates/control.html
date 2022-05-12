@@ -17,7 +17,7 @@
       <h1 class="head-text" >{{object.obj_name}} Control</h1>
   </div>
 
-  <div class="container" >
+  <div class="container" style="max-width: 500px;">
       <div class="btn-box" >
           <div class="status d-flex align-items-end flex-column bd-highlight mb-3">
             <div class="align-self-center">
@@ -55,8 +55,9 @@
               {% endfor %}
           </div>
       </div>
+      <div class="container" style="max-width: 500px;">
       <a href="/object/{{object.obj_id}}/setup">
-      <button class="set-box">
+      <button class="set-box" >
           <div class="row" >
             <p class="col">Set Condition</p>
               <p class="col right">
@@ -65,6 +66,7 @@
                     </svg></p></div>
       </button>
       </a>
+      <br>
       <a href="/object/{{object.obj_id}}/settime">
       <button class="set-box">
           <div class="row">
@@ -75,5 +77,6 @@
                 </svg></p></div>
       </button>
       </a>
+  </div>
   </div>
 {% endblock %}

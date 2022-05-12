@@ -39,7 +39,8 @@
 }());</script>
     <div class="cardsetup-box">
     {% for obj in objects %}
-      <div class="row center d-flex align-items-center" >
+    <div class="row" >
+      <div class="form-inline d-flex align-items-center" >
         <div class="col-2 flex-left">
           <h4>{{obj.obj_ts_value}}</h4>
         </div>
@@ -48,6 +49,7 @@
         </div>
 
         <div class="col-6 flex-left">
+          <div class="">
           {% set days=get_days_by_ts_id(obj.obj_ts_id) %}
           {% for day in days %}
           <label class="day">
@@ -55,6 +57,7 @@
           </label>
           {% endfor %}
         </div>
+      </div>
         <div class="col-1 flex-left">
           <a href="/object/{{obj.obj_id}}/settime/delete/{{obj.obj_ts_id}}">
           <button class="btn-del">
@@ -64,27 +67,32 @@
           </button>
           </a>
         </div>
-      </div><hr>
+      </div>
+      <br>
+      <hr>
+    </div>
       {% endfor %}
-      <div class="row center">
+      <div class="row ">
         <form class="form-inline d-flex align-items-center" action="/object/{{id}}/settime" method="POST">
-          <div class="col-2 ">
-            <div class="custom-select" style="min-width:200px;">
+          <div class="col-5 ">
+            <div class="row">
+              <div class="col-4 col-md-3">
+                <div class="custom-select" style="min-width:200px;">
               <select id="id" name="status">
                 select status
                 <option value="open">open</option>
                 <option value="close">close</option>
               </select>
             </div>
-            <label> &emsp; at time</label>
-          </div>
-          <div class="col-3  flex-left">
-            <div style="display: inline-block;">
-              <input class="custom-input" type="number" style="width:80px; display: inline;"  min="0" max="23" name="hour">
-              <label> : </label>
-              <input class="custom-input" type="number" style="width:80px; display: inline;"  min="0" max="59" name="min">
+            </div>
+            <div class="col-8 col-md-9 center">
+                  <label> at time </label> <!-- &emsp; -->
+                  <input class="custom-input" type="number" min="0" max="100" name="hour">
+                  <label> : </label>
+                  <input class="custom-input" type="number" min="0" max="100" name="min">
             </div>
           </div>
+        </div>
           <div class="col-6 flex-left">
             <div class="">
               <label class="dayselect">
@@ -117,14 +125,13 @@
               </label>
             </div>
           </div>
-          <div class="col-1  flex-right">
+          <div class="col-1 flex-left">
             <div class="custom-select">
             <button type="submit" class="btn btn-primary" id="checkBtn">save</button>
             </div>
           </div>
-        </form>
-      </div><hr>
-
+        </form><hr>
+      </div>
     </div>
     </div>
 {% endblock %}

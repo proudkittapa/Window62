@@ -25,11 +25,11 @@ app.config['SERVER_NAME'] = "localhost:5555"
 
 db = SQLAlchemy(app)
 
-tempData = "disconnected"
-lightData = "disconnected"
-humidityData = "disconnected"
-dustData = "disconnected"
-pm25Data = "disconnected"
+tempData = "--"
+lightData = "--"
+humidityData = "--"
+dustData = "--"
+pm25Data = "--"
 
 
 class Topic:
