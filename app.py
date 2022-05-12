@@ -10,7 +10,6 @@ import atexit
 
 broker = 'broker.emqx.io'
 port = 1883
-# topic = "test"
 client_id = f'python-mqtt-{random.randint(0, 1000)}'
 client_id2 = f'python-mqtt-{random.randint(0, 1000)}'
 
@@ -40,12 +39,6 @@ class Topic:
 
     def publish(self):
         result = client2.publish(self.topic, self.message)
-        print("result pub:", result, self.topic, self.message)
-
-    # def add_schedule(self):
-    #     scheduler.add_job(id="sch", func=self.publish, trigger="interval", seconds=3)
-    #     scheduler.start()
-
 
 class object_condition_setting(db.Model):
     obj_cs_id = db.Column(db.Integer, primary_key=True)
@@ -175,13 +168,20 @@ class transaction_obj(db.Model):
         db.session.add(self)
         db.session.commit()
 
+class object_ts_day(db.Model):
+    obj_ts_day_id = db.Column(db.Integer, primary_key=True)
+    obj_ts_id = db.Column(db.Integer)
+    obj_ts_day = db.Column(db.String(100))
+
+    def insert(self):
+        db.session.add(self)
+        db.session.commit()
 
 class object_time_setting(db.Model):
     obj_ts_id = db.Column(db.Integer, primary_key=True)
     obj_id = db.Column(db.Integer)
     obj_ts_hour = db.Column(db.Integer)
     obj_ts_min = db.Column(db.Integer)
-    obj_ts_day = db.Column(db.String(20))
     obj_ts_created = db.Column(db.DateTime)
     obj_ts_value = db.Column(db.String(10))
 
@@ -189,16 +189,7 @@ class object_time_setting(db.Model):
         db.session.add(self)
         db.session.commit()
 
-    def get_days(self):
-        li = list(self.obj_ts_day[1:-1].split(","))
-        li2 = []
-        for i in li:
-            if i != "":
-                li2.append(int(i))
-        return li2
 
-    def get_days_string(self):
-        return self.obj_ts_day[1:-1]
 
 
 def on_connect(client, userdata, flags, rc):
@@ -213,7 +204,6 @@ def on_connect(client, userdata, flags, rc):
 
 
 def on_message(client, userdata, msg):
-    # print(msg.topic+" "+str(msg.payload.decode()) + '\n')
     message = str(msg.payload.decode())
     if msg.topic == "WindowTemp":
         val = float(msg.payload.decode())
@@ -285,7 +275,6 @@ def index():
 @app.route('/object/<int:obj_id>')
 def obj_sensors_control(obj_id):
     if request.method == "GET":
-        # sensors = Sensor.query.join(Object, Sensor.obj_id==Object.obj_id)
         sensors_query = Sensor.query.filter_by(obj_id=obj_id).all()
         object_query = Object.query.filter_by(obj_id=obj_id).first()
         return render_template("control.html", sensors=sensors_query, object=object_query, lightData=lightData,
@@ -324,6 +313,7 @@ def status(obj_id, curr_status):
 
 @app.route("/object/<int:obj_id>/settime/delete/<int:settime_id>", methods=["GET"])
 def delete_time_setting(obj_id, settime_id):
+    object_ts_day.query.filter(object_ts_day.obj_ts_id == settime_id).delete()
     object_time_setting.query.filter(object_time_setting.obj_ts_id == settime_id).delete()
     db.session.commit()
     try:
@@ -340,37 +330,38 @@ def save_time_setting(obj_id):
     sensors = Sensor.query.filter_by(obj_id=obj_id).all()
     name = object_query.obj_name
     if request.method == "GET":
-        return render_template("settime.html", id=obj_id, objects=objects_setting, name=name, sensors=sensors )
+        return render_template("settime.html", id=obj_id, objects=objects_setting, name=name, sensors=sensors, get_days_by_ts_id= get_days_by_ts_id)
     elif request.method == "POST":
         req = request.form
         hour = 0
         min = 0
-        print("test", req.get("hour"))
         if req.get("hour") != "":
             hour = int(req.get("hour"))
         if req.get("min") != "":
             min = int(req.get("min"))
         setting_status = req.get("status")
-        day = []
+        days = []
         for k, v in request.form.items():
             if k == "hour" or k == "min" or k == "status":
                 pass
             else:
-                day.append(int(v))
-        setting = object_time_setting(obj_id=int(obj_id), obj_ts_value=setting_status, obj_ts_hour=hour, obj_ts_min=min, obj_ts_day=str(day))
+                days.append(v)
+        setting = object_time_setting(obj_id=int(obj_id), obj_ts_value=setting_status, obj_ts_hour=hour, obj_ts_min=min)
         try:
             setting.insert()
-            print("idddd", setting.obj_ts_id)
+            dayStr = "["
+            for day in days:
+                setting_day = object_ts_day(obj_ts_id=int(setting.obj_ts_id), obj_ts_day=day)
+                setting_day.insert()
+                dayStr += day+","
+            
+            dayStr = dayStr[:-1]+"]"
             new_schedule = ObjectSchedule("test", "message", setting.obj_ts_id)
-            new_schedule.add(setting.get_days_string(), setting.obj_ts_hour, setting.obj_ts_min)
-            return redirect("/object/" + str(obj_id) + "/settime")
+            new_schedule.add(dayStr, setting.obj_ts_hour, setting.obj_ts_min)
         except Exception as error:
             flash("The condition already existed")
-            return redirect("/object/" + str(obj_id) + "/settime")
-        # new_schedule.add_interval()
-        # print("jobs", new_schedule.scheduler.get_jobs())
+        
         return redirect("/object/" + str(obj_id) + "/settime")
-        # return render_template("settime.html", id=obj_id, objects=objects_setting, name=name, sensors=sensors)
 
 
 @app.route("/object/<int:obj_id_para>/setup", methods=["GET", "POST", "DELETE"])
@@ -386,14 +377,11 @@ def save_condition_setting(obj_id_para):
         # check conditions
         allow = True
         for obj in objects:
-            # TODO fix logic (didn't check sensors)
             if (obj.obj_id != setup.obj_id) and (
                     (obj.obj_cs_sign == "more" and float(setup.obj_cs_value) >= obj.obj_cs_value) or (
                     obj.obj_cs_sign == "less" and float(setup.obj_cs_value) <= obj.obj_cs_value)):
                 allow = False
-                print("allow", allow)
                 flash("The condition is not possible")
-                # return redirect("/object/" + str(obj_id_para) + "/setup")
         if allow:
             try:
                 setup.insert()
@@ -403,11 +391,8 @@ def save_condition_setting(obj_id_para):
                     setup.obj_cs_value)
                 save_topic = Topic(topic, setup_str)
                 save_topic.publish()
-                # print("in inserteddd")
-                # flash("inserted")
                 return redirect("/object/" + str(obj_id_para) + "/setup")
             except Exception as error:
-                print("innnnn except", error)
                 db.session.rollback()
                 flash("The condition already existed")
                 return redirect("/object/" + str(obj_id_para) + "/setup")
@@ -424,11 +409,13 @@ def get_sensor_unit_by_setup_id(setup_sensor_id):
     sensor = Sensor.query.filter_by(sensor_id=setup_sensor_id).first()
     return sensor.sensor_unit
 
+def get_days_by_ts_id(ts_id):
+    ts_days = object_ts_day.query.filter_by(obj_ts_id=int(ts_id)).all()
+    return ts_days
 
 @app.route("/object/<int:obj_id>/setup/delete/<int:setup_id>", methods=["GET"])
 def delete_condition_setting(obj_id, setup_id):
     object_condition_setting.query.filter(object_condition_setting.obj_cs_id == setup_id).delete()
-    # scheduler.remove_job(setup_id)
     db.session.commit()
     topic = "Conditions"
     msg = str(setup_id) + ",Cancel"
@@ -438,6 +425,4 @@ def delete_condition_setting(obj_id, setup_id):
 
 if __name__ == '__main__':
     client = mqtt.Client()
-    print("scheduler", scheduler.get_jobs())
-
     app.run(debug=True, host='localhost', port=5555)

@@ -48,42 +48,12 @@
         </div>
 
         <div class="col-6 flex-left">
-          {% set days=obj.get_days() %}
-          {% if 0 in days %}
+          {% set days=get_days_by_ts_id(obj.obj_ts_id) %}
+          {% for day in days %}
           <label class="day">
-            <span class="checkmark">Mon</span>
+            <span class="checkmark">{{day.obj_ts_day}}</span>
           </label>
-          {% endif %}
-          {% if 1 in days %}
-          <label class="day">
-            <span class="checkmark">Tue</span>
-          </label>
-          {% endif %}
-          {% if 2 in days %}
-          <label class="day">
-            <span class="checkmark">Wed</span>
-          </label>
-          {% endif %}
-          {% if 3 in days %}
-          <label class="day">
-            <span class="checkmark">Thu</span>
-          </label>
-          {% endif %}
-          {% if 4 in days %}
-          <label class="day">
-            <span class="checkmark">Fri</span>
-          </label>
-          {% endif %}
-          {% if 5 in days %}
-          <label class="day">
-            <span class="checkmark">Sat</span>
-          </label>
-          {% endif %}
-          {% if 6 in days %}
-          <label class="day">
-            <span class="checkmark">Sun</span>
-          </label>
-          {% endif %}
+          {% endfor %}
         </div>
         <div class="col-1 flex-left">
           <a href="/object/{{obj.obj_id}}/settime/delete/{{obj.obj_ts_id}}">
@@ -118,39 +88,38 @@
           <div class="col-6 flex-left">
             <div class="">
               <label class="dayselect">
-                <input type="checkbox" name="mon" value=0>
+                <input type="checkbox" name="mon" value=mon>
                 <span class="checkmark">Mon</span>
               </label>
               <label class="dayselect">
-                <input type="checkbox" name="tue" value=1>
+                <input type="checkbox" name="tue" value=tue>
                 <span class="checkmark">Tue</span>
               </label>
               <label class="dayselect">
-                <input type="checkbox" name="wed" value=2>
+                <input type="checkbox" name="wed" value=wed>
                 <span class="checkmark">Wed</span>
               </label>
               <label class="dayselect">
-                <input type="checkbox" name="thu" value=3>
+                <input type="checkbox" name="thu" value=thu>
                 <span class="checkmark">Thu</span>
               </label>
-              <label class="dayselect" name="fri" value=4>
-                <input type="checkbox">
-                <span class="checkmark">Fri</span>
-              </label>
               <label class="dayselect">
-                <input type="checkbox" name="sat" value=5>
+                <input type="checkbox" name="fri" value=fri>
                 <span class="checkmark">Sat</span>
               </label>
               <label class="dayselect">
-                <input type="checkbox" name="sun" value=6>
+                <input type="checkbox" name="sat" value=sat>
+                <span class="checkmark">Sat</span>
+              </label>
+              <label class="dayselect">
+                <input type="checkbox" name="sun" value=sun>
                 <span class="checkmark">Sun</span>
               </label>
             </div>
           </div>
-
           <div class="col-1  flex-right">
             <div class="custom-select">
-            <button type="submit" class="btn btn-primary">save</button>
+            <button type="submit" class="btn btn-primary" id="checkBtn">save</button>
             </div>
           </div>
         </form>

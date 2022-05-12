@@ -1,12 +1,12 @@
-drop database window62;
-create database window62 ;
+drop database window62_db ;
+create database window62_db ;
 
-use window62 ;
+use window62_db ;
 
 -- table: room
 CREATE TABLE room(
 	room_id int primary key auto_increment, 
-	room_name varchar(20)	NOT NULL
+	room_name varchar(100)	NOT NULL
 );
 
 -- table: object
@@ -38,54 +38,23 @@ CREATE TABLE motor(
     FOREIGN KEY (obj_id) REFERENCES object(obj_id)
 );
 
-CREATE TABLE temp_reading(
-	temp_id int primary key auto_increment, 
-    temp_input double not null, 
+CREATE TABLE sensor_reading(
+	sensor_reading_id int primary key auto_increment, 
+    sensor_reading_input double not null, 
     insertTimestamp datetime default current_timestamp not null,
     sensor_id int not null, 
     FOREIGN KEY (sensor_id) REFERENCES sensor(sensor_id)
 );
 
-CREATE TABLE ldr_reading(
-	ldr_id int primary key auto_increment, 
-	sensor_id int not null, 
-    ldr_input double not null, 
-    insertTimestamp datetime default current_timestamp not null,
-    FOREIGN KEY (sensor_id) REFERENCES sensor(sensor_id)
-);
 
-CREATE TABLE humidity_reading(
-	humidity_id int primary key auto_increment, 
-	sensor_id int not null, 
-    humidity_input double not null, 
-    insertTimestamp datetime default current_timestamp not null,
-    FOREIGN KEY (sensor_id) REFERENCES sensor(sensor_id)
-);
-
-CREATE TABLE pm_reading(
-	pm_id int primary key auto_increment, 
-	sensor_id int not null, 
-    pm_input double not null, 
-    insertTimestamp datetime default current_timestamp not null,
-    FOREIGN KEY (sensor_id) REFERENCES sensor(sensor_id)
-);
-
-
-CREATE TABLE servo_result(
-	servo_id int primary key auto_increment, 
+CREATE TABLE motor_result(
+	motor_result_id int primary key auto_increment, 
 	motor_id int not null, 
-    servo_result varchar(100) 	not null, 
+    motor_data varchar(100) 	not null, 
     insertTimestamp datetime default current_timestamp not null,
     FOREIGN KEY (motor_id) REFERENCES motor(motor_id)
 );
 
-CREATE TABLE Linear_actuator_result(
-	actuator_id int primary key auto_increment, 
-	motor_id int not null, 
-    actuator_result varchar(100) 	not null, 
-    insertTimestamp datetime default current_timestamp not null,
-    FOREIGN KEY (motor_id) REFERENCES motor(motor_id)
-);
 
 CREATE TABLE transaction_obj(
 	tran_id int primary key auto_increment, 

@@ -113,13 +113,7 @@ CREATE TABLE object_time_setting (
 	FOREIGN KEY (obj_id) REFERENCES object(obj_id),
     obj_ts_hour int not null default 0,
     obj_ts_min int not null default 0,
+    obj_ts_day varchar(100) default "",
     obj_ts_created datetime default current_timestamp,
     obj_ts_value varchar(10)
-);
-
-CREATE TABLE object_ts_day(
-	obj_ts_day_id int primary key auto_increment,
-    obj_ts_id int not null,
-    FOREIGN KEY (obj_ts_id) REFERENCES object_time_setting(obj_ts_id),
-    obj_ts_day varchar(100) default ""
 );
